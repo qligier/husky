@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>husky-appc-ch</artifactId>
+    <name>Husky APPC CH</name>
+
+    <parent>
+        <artifactId>husky-appc</artifactId>
+        <groupId>org.husky.appc</groupId>
+        <version>2.0-CARA</version>
+    </parent>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.husky.appc</groupId>
+            <artifactId>husky-appc-gen</artifactId>
+            <version>2.0-CARA</version>
+        </dependency>
+        <dependency>
+            <groupId>org.husky.communication</groupId>
+            <artifactId>husky-communication-ch</artifactId>
+            <version>2.0-CARA</version>
+        </dependency>
+        <dependency>
+            <!-- The Checker Framework enhances Java's type system to make it more powerful and useful. -->
+            <groupId>org.checkerframework</groupId>
+            <artifactId>checker-qual</artifactId> <!-- MIT -->
+        </dependency>
+
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <!-- Temporary dependency for dev -->
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.22</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+</project>
