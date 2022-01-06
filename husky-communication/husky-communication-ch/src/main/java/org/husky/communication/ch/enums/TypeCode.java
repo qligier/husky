@@ -358,7 +358,18 @@ public enum TypeCode implements ValueSetEnumInterface {
                             "Transfer summary report",
                             "Überweisungsbericht",
                             "Rapport de transfert",
-                            "Rapporto di trasferimento");
+                            "Rapporto di trasferimento"),
+
+    /**
+     * New codes
+     */
+    PATIENT_CONSENT_DOCUMENT("721914005",
+            "2.16.840.1.113883.6.96",
+            "Patient consent document (record artefact)",
+            "Patient consent document",
+            "Patient consent document",
+            "Patient consent document",
+            "Patient consent document");
 
     /**
      * EN: Code for Allergy record.<br>
