@@ -1,9 +1,7 @@
-# The Husky library
+# CARA custom build of the Husky library
 
-[![GitHub license](https://img.shields.io/github/license/project-husky/husky)](https://github.com/project-husky/husky/blob/master/License.md)
-![JDK17](https://img.shields.io/badge/java-JDK17-blue)
-![GitHub Workflow Status](https://img.shields.io/github/workflow/status/project-husky/husky/Java%20CI%20with%20Maven%20and%20CodeQL)
-![Snyk Vulnerabilities for GitHub Repo](https://img.shields.io/snyk/vulnerabilities/github/project-husky/husky)
+⚠️This is a custom build of the Husky library for CARA/HUG. Please don't use it, things break really often and all
+changes are to be integrated back in Husky when it's stable.
 
 This convenience API for IHE transactions and CDA documents allows easy access and conformity to eHealth affinity
 domains. The project is based on a country independent architecture, but implements also Swiss extensions. Other country
