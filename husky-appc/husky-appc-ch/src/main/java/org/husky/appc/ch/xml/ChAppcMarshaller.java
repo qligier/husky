@@ -29,12 +29,12 @@ import static org.husky.common.enums.CodeSystems.SwissEprSpid;
  *
  * @author Quentin Ligier
  **/
-public class SwissAppcMarshaller {
+public class ChAppcMarshaller {
 
     /**
      * This class is not instantiable.
      */
-    private SwissAppcMarshaller() {
+    private ChAppcMarshaller() {
     }
 
     /**

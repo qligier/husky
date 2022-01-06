@@ -41,12 +41,12 @@ import java.util.function.BiFunction;
  *
  * @author Quentin Ligier
  **/
-public class SwissAppcUnmarshaller {
+public class ChAppcUnmarshaller {
 
     /**
      * This class is not instantiable.
      */
-    private SwissAppcUnmarshaller() {
+    private ChAppcUnmarshaller() {
     }
 
     /**
@@ -96,7 +96,7 @@ public class SwissAppcUnmarshaller {
                 .map(JAXBElement::getValue)
                 .map(object -> OptionalUtils.castOrFilter(object, PolicySetType.class))
                 .filter(Objects::nonNull)
-                .map(SwissAppcUnmarshaller::extractChildPolicySet)
+                .map(ChAppcUnmarshaller::extractChildPolicySet)
                 .toList();
 
         return new ChPolicySet(
