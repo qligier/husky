@@ -20,6 +20,7 @@ import org.husky.appc.ch.models.*;
 import org.husky.appc.models.*;
 import org.husky.appc.xml.AppcUnmarshaller;
 import org.husky.common.utils.OptionalUtils;
+import org.husky.common.utils.StreamUtils;
 import org.xml.sax.InputSource;
 
 import javax.xml.bind.DataBindingException;
@@ -94,7 +95,7 @@ public class ChAppcUnmarshaller {
     private static ChPolicySet mapSwissModel(final PolicySetType policySet) {
         final List<@NonNull ChChildPolicySet> policySets = policySet.getPolicySetOrPolicyOrPolicySetIdReference().stream()
                 .map(JAXBElement::getValue)
-                .map(object -> OptionalUtils.castOrFilter(object, PolicySetType.class))
+                .map(object -> OptionalUtils.castOrNull(object, PolicySetType.class))
                 .filter(Objects::nonNull)
                 .map(ChAppcUnmarshaller::extractChildPolicySet)
                 .toList();
@@ -133,7 +134,7 @@ public class ChAppcUnmarshaller {
                         .orElseThrow(() -> new InvalidSwissAppcContentException("The PolicySet has no Id"));
         final String description = policySet.getDescription();
         final List<@NonNull ChAccessLevelPolicy> policies = policySet.getPolicySetOrPolicyOrPolicySetIdReference().stream()
-                .map(object -> OptionalUtils.castOrFilter(object, IdReferenceType.class))
+                .map(object -> OptionalUtils.castOrNull(object, IdReferenceType.class))
                 .filter(Objects::nonNull)
                 .map(IdReferenceType::getValue)
                 .filter(ChAccessLevelPolicy::urnInEnum)

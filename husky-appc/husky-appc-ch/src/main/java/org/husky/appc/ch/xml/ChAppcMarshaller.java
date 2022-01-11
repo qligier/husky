@@ -22,7 +22,7 @@ import javax.xml.bind.JAXBException;
 import java.util.Comparator;
 import java.util.Objects;
 
-import static org.husky.common.enums.CodeSystems.SwissEprSpid;
+import static org.husky.common.enums.CodeSystems.SWISS_EPR_SPID;
 
 /**
  * This class provides a marshaller implementation to convert Swiss APPC documents to their XML representation.
@@ -70,7 +70,7 @@ public class ChAppcMarshaller {
      * @return the created {@link TargetType}.
      */
     private static TargetType createPatientTarget(final String patientEprSpid) {
-        final var instanceIdentifier = new II(SwissEprSpid.getCodeSystemId(), patientEprSpid);
+        final var instanceIdentifier = new II(SWISS_EPR_SPID.getCodeSystemId(), patientEprSpid);
         final var attributeValue = new AttributeValueType(instanceIdentifier);
         final var resAttrDesignator = new AttributeDesignatorType(ChAppcUrns.EPR_SPID, AppcUrns.II);
 
