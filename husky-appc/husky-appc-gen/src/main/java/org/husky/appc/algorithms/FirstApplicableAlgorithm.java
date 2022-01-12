@@ -16,29 +16,25 @@ import org.husky.appc.enums.AuthorizationDecisionResult;
 import java.util.List;
 
 /**
- * The implementation of the Deny-overrides policy-combining algorithm of a policy set.
+ * The implementation of the First-applicable policy-combining algorithm of a policy set.
  * <p>
  * It is described in <em>eXtensible Access Control Markup Language 3 (XACML) Version 2.0, Appendix C.1</em>.
  *
  * @author Quentin Ligier
  **/
-public class DenyOverridesAlgorithm implements PolicyCombiningAlgorithm {
+public class FirstApplicableAlgorithm implements PolicyCombiningAlgorithm {
 
     /**
      * {@inheritDoc}
      */
     @Override
     public AuthorizationDecision combinePolicies(final List<AuthorizationDecision> decisions) {
-        AuthorizationDecision atLeastOnePermit = null;
         for (final var decision : decisions) {
-            if (decision.result() == AuthorizationDecisionResult.DENY || decision.result() == AuthorizationDecisionResult.INDETERMINATE) {
-                return new AuthorizationDecision(AuthorizationDecisionResult.DENY, decision.ruleId());
-            } else if (decision.result() == AuthorizationDecisionResult.PERMIT) {
-                atLeastOnePermit = decision;
+            if (decision.result() == AuthorizationDecisionResult.NOT_APPLICABLE) {
+                continue;
             }
+            return decision;
         }
-        return atLeastOnePermit != null ?
-                atLeastOnePermit :
-                new AuthorizationDecision(AuthorizationDecisionResult.NOT_APPLICABLE, "default");
+        return new AuthorizationDecision(AuthorizationDecisionResult.NOT_APPLICABLE, "default");
     }
 }

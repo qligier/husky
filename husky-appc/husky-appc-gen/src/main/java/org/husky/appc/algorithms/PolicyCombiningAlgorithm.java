@@ -16,7 +16,7 @@ import org.husky.appc.enums.AuthorizationDecisionResult;
 import java.util.List;
 
 /**
- * Interface of policy-combining algorithms.
+ * Interface of policy-combining algorithms of a policy set.
  * <p>
  * Algorithms are described in <em>eXtensible Access Control Markup Language 3 (XACML) Version 2.0</em>.
  *
@@ -30,5 +30,5 @@ public interface PolicyCombiningAlgorithm {
      * @param decisions The results of the policies evaluation.
      * @return The combined authorization decision.
      */
-    AuthorizationDecisionResult combinePolicies(final List<AuthorizationDecisionResult> decisions);
+    AuthorizationDecision combinePolicies(final List<AuthorizationDecision> decisions);
 }

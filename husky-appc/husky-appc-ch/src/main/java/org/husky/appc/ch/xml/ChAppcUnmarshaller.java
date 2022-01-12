@@ -20,7 +20,6 @@ import org.husky.appc.ch.models.*;
 import org.husky.appc.models.*;
 import org.husky.appc.xml.AppcUnmarshaller;
 import org.husky.common.utils.OptionalUtils;
-import org.husky.common.utils.StreamUtils;
 import org.xml.sax.InputSource;
 
 import javax.xml.bind.DataBindingException;
