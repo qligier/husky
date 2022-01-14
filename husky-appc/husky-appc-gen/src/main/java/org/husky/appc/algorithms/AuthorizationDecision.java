@@ -25,26 +25,38 @@ package org.husky.appc.algorithms;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.husky.appc.enums.AuthorizationDecisionResult;
 
+import javax.annotation.concurrent.Immutable;
 import java.util.Objects;
 
 /**
  * The result of evaluating applicable policy.
  *
- * @author Quentin Ligier
- *
  * @param result The result of the evaluation.
  * @param ruleId The ID of the rule that led to this result ({@code PERMIT} or {@code DENY}) or {@code null}.
+ * @author Quentin Ligier
  **/
+@Immutable
 public record AuthorizationDecision(AuthorizationDecisionResult result,
                                     @Nullable String ruleId) {
 
-    public AuthorizationDecision(AuthorizationDecisionResult result,
-                                 @Nullable String ruleId) {
+    /**
+     * Full constructor.
+     *
+     * @param result The result of the evaluation.
+     * @param ruleId The ID of the rule that led to this result ({@code PERMIT} or {@code DENY}) or {@code null}.
+     */
+    public AuthorizationDecision(final AuthorizationDecisionResult result,
+                                 @Nullable final String ruleId) {
         this.result = Objects.requireNonNull(result);
         this.ruleId = ruleId;
     }
 
-    public AuthorizationDecision(AuthorizationDecisionResult result) {
+    /**
+     * Simplified constructor. It sets the {@code ruleId} to {@code null}.
+     *
+     * @param result The result of the evaluation.
+     */
+    public AuthorizationDecision(final AuthorizationDecisionResult result) {
         this(result, null);
     }
 }

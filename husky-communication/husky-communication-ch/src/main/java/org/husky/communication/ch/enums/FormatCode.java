@@ -9,14 +9,14 @@
  */
 package org.husky.communication.ch.enums;
 
-import java.util.Objects;
-import javax.annotation.processing.Generated;
-
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.husky.common.enums.CodeSystems;
 import org.husky.common.enums.LanguageCode;
 import org.husky.common.enums.ValueSetEnumInterface;
+
+import javax.annotation.processing.Generated;
+import java.util.Objects;
 
 /**
  * Enumeration of DocumentEntry.formatCode values
@@ -235,53 +235,53 @@ public enum FormatCode implements ValueSetEnumInterface {
      */
     MEDICATION_CARD("urn:ch:cda-ch-emed:medication-card:2018",
             "2.16.756.5.30.1.127.3.10.10",
-            "",
-            "",
-            "",
-            "",
-            ""),
+            "a",
+            "a",
+            "a",
+            "a",
+            "a"),
     MEDICATION_CARD_PDF_FORMAT("urn:ch:cda-ch-emed:pdf-medication-card:2018",
             "2.16.756.5.30.1.127.3.10.10",
-            "",
-            "",
-            "",
-            "",
-            ""),
+            "a",
+            "a",
+            "a",
+            "a",
+            "a"),
     FHIR_COMMUNITY_MEDICATION_TREATMENT_PLAN("urn:ch:ch-emed:mtp:2020",
             "2.16.756.5.30.1.127.3.10.10",
-            "",
-            "",
-            "",
-            "",
-            ""),
+            "a",
+            "a",
+            "a",
+            "a",
+            "a"),
     FHIR_COMMUNITY_PRESCRIPTION("urn:ch:ch-emed:pre:2020",
             "2.16.756.5.30.1.127.3.10.10",
-            "",
-            "",
-            "",
-            "",
-            ""),
+            "a",
+            "a",
+            "a",
+            "a",
+            "a"),
     FHIR_COMMUNITY_DISPENSE("urn:ch:ch-emed:dis:2020",
             "2.16.756.5.30.1.127.3.10.10",
-            "",
-            "",
-            "",
-            "",
-            ""),
+            "a",
+            "a",
+            "aa",
+            "a",
+            "a"),
     FHIR_MEDICATION_CARD("urn:ch:ch-emed:medication-card:2020",
             "2.16.756.5.30.1.127.3.10.10",
-            "",
-            "",
-            "",
-            "",
-            ""),
+            "a",
+            "a",
+            "a",
+            "a",
+            "a"),
     ADVANCED_PATIENT_PRIVACY_CONSENTS("urn:ihe:iti:appc:2016:consent",
             "2.16.756.5.30.1.127.3.10.10",
-            "",
-            "",
-            "",
-            "",
-            "");
+            "a",
+            "a",
+            "a",
+            "a",
+            "a");
 
     /**
      * EN: Code for CDA Imaging Report with Structured Headings.<br>
