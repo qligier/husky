@@ -58,6 +58,7 @@ import java.util.Objects;
         "policySetOrPolicyOrPolicySetIdReference",
         "obligations"
 })
+@XmlRootElement(name = "PolicySet", namespace = "urn:oasis:names:tc:xacml:2.0:policy:schema:os")
 public class PolicySetType {
 
     @XmlElement(name = "Description")

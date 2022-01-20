@@ -13,7 +13,6 @@ package org.husky.appc.ch.xml;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.husky.appc.AppcUrns;
-import org.husky.appc.ch.ChAppcUrns;
 import org.husky.appc.ch.enums.ChAccessLevelPolicy;
 import org.husky.appc.ch.errors.InvalidSwissAppcContentException;
 import org.husky.appc.ch.models.*;
@@ -32,6 +31,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiFunction;
+
+import static org.husky.common.enums.CodeSystems.SWISS_EPR_SPID;
 
 /**
  * This class provides an unmarshaller implementation to read Swiss APPC documents from their XML representation.
@@ -123,7 +124,7 @@ public class ChAppcUnmarshaller {
                 .map(OptionalUtils::getListOnlyElement)
                 .map(ResourceMatchType::getAttributeValue)
                 .flatMap(AttributeValueType::getSingleIi)
-                .filter(ii -> ChAppcUrns.EPR_SPID.equals(ii.getRoot()))
+                .filter(ii -> SWISS_EPR_SPID.getCodeSystemId().equals(ii.getRoot()))
                 .map(II::getExtension)
                 .orElseThrow(() -> new InvalidSwissAppcContentException("The patient EPR-SPID has not been found"));
     }
@@ -133,8 +134,9 @@ public class ChAppcUnmarshaller {
                         .orElseThrow(() -> new InvalidSwissAppcContentException("The PolicySet has no Id"));
         final String description = policySet.getDescription();
         final List<@NonNull ChAccessLevelPolicy> policies = policySet.getPolicySetOrPolicyOrPolicySetIdReference().stream()
-                .map(object -> OptionalUtils.castOrNull(object, IdReferenceType.class))
-                .filter(Objects::nonNull)
+                .map(JAXBElement::getValue)
+                .filter(IdReferenceType.class::isInstance)
+                .map(IdReferenceType.class::cast)
                 .map(IdReferenceType::getValue)
                 .filter(ChAccessLevelPolicy::urnInEnum)
                 .map(ChAccessLevelPolicy::getByUrn)
@@ -148,6 +150,23 @@ public class ChAppcUnmarshaller {
                     .map(SubjectMatchType::getAttributeValue)
                     .flatMap(AttributeValueType::getStringContent)
                     .orElse(null);
+        final BiFunction<List<@NonNull SubjectMatchType>, String, String> extractCv =
+                (subjectMatches, attributeId) -> subjectMatches.stream()
+                        .filter(subjectMatch -> subjectMatch.getSubjectAttributeDesignator() != null)
+                        .filter(subjectMatch -> attributeId.equals(subjectMatch.getSubjectAttributeDesignator().getAttributeId()))
+                        .findAny()
+                        .map(SubjectMatchType::getAttributeValue)
+                        .map(AttributeValueType::getContent)
+                        .orElseGet(Collections::emptyList)
+                        .stream()
+                        .filter(JAXBElement.class::isInstance)
+                        .map(JAXBElement.class::cast)
+                        .map(JAXBElement::getValue)
+                        .filter(CV.class::isInstance)
+                        .map(CV.class::cast)
+                        .map(CV::getCode)
+                        .findAny()
+                        .orElse(null);
 
         final List<@NonNull SubjectMatchType> subjectMatches = Optional.ofNullable(policySet.getTarget())
                 .map(TargetType::getSubjects)
@@ -157,9 +176,9 @@ public class ChAppcUnmarshaller {
                 .orElse(Collections.emptyList()).stream()
                 .toList();
         final String subjectId = extractValue.apply(subjectMatches, AppcUrns.OASIS_SUBJECT_ID);
-        final String role = extractValue.apply(subjectMatches, AppcUrns.OASIS_SUBJECT_ROLE);
+        final String role = extractCv.apply(subjectMatches, AppcUrns.OASIS_SUBJECT_ROLE);
         final String organizationId = extractValue.apply(subjectMatches, AppcUrns.OASIS_SUBJECT_ORG_ID);
-        final String purposeOfUse = extractValue.apply(subjectMatches, AppcUrns.OASIS_SUBJECT_PURPOSE_USE);
+        final String purposeOfUse = extractCv.apply(subjectMatches, AppcUrns.OASIS_SUBJECT_PURPOSE_USE);
         final LocalDate endDate = Optional.ofNullable(policySet.getTarget().getEnvironments()).stream()
                 .map(EnvironmentsType::getEnvironment)
                 .map(OptionalUtils::getListOnlyElement)

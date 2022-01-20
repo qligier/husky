@@ -11,9 +11,9 @@ package org.husky.appc.models;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.husky.appc.AppcUrns;
-import org.husky.common.utils.OptionalUtils;
 import org.w3c.dom.Element;
 
+import javax.xml.bind.JAXBElement;
 import javax.xml.bind.annotation.*;
 import javax.xml.namespace.QName;
 import java.time.LocalDate;
@@ -73,12 +73,14 @@ public class AttributeValueType {
 
     public AttributeValueType(@NonNull final II instanceIdentifier) {
         this.dataType = AppcUrns.II;
-        this.content = new ArrayList<>(List.of(Objects.requireNonNull(instanceIdentifier)));
+        final var element = new ObjectFactory().createInstanceIdentifier(Objects.requireNonNull(instanceIdentifier));
+        this.content = new ArrayList<>(List.of(element));
     }
 
     public AttributeValueType(@NonNull final CV codedValue) {
         this.dataType = AppcUrns.CV;
-        this.content = new ArrayList<>(List.of(Objects.requireNonNull(codedValue)));
+        final var element = new ObjectFactory().createCodedValue(Objects.requireNonNull(codedValue));
+        this.content = new ArrayList<>(List.of(element));
     }
 
     public AttributeValueType(@NonNull final LocalDate date) {
@@ -160,9 +162,12 @@ public class AttributeValueType {
 
     @NonNull
     public Optional<II> getSingleIi() {
-        return !isIi() ? Optional.empty() : Optional.ofNullable(this.content)
-                .map(OptionalUtils::getListOnlyElement)
+        return !isIi() ? Optional.empty() : this.getContent().stream()
+                .filter(JAXBElement.class::isInstance)
+                .map(JAXBElement.class::cast)
+                .map(JAXBElement::getValue)
                 .filter(II.class::isInstance)
-                .map(II.class::cast);
+                .map(II.class::cast)
+                .findAny();
     }
 }
