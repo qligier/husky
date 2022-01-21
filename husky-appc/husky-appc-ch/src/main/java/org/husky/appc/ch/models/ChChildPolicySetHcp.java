@@ -60,7 +60,7 @@ public class ChChildPolicySetHcp extends ChChildPolicySet {
      * {@inheritDoc}
      */
     public int getSortScore() {
-        return 1;
+        return 2;
     }
 
     /**

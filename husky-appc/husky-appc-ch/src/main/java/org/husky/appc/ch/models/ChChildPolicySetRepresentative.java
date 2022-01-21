@@ -53,7 +53,7 @@ public class ChChildPolicySetRepresentative extends ChChildPolicySet {
      * {@inheritDoc}
      */
     public int getSortScore() {
-        return 2;
+        return 1;
     }
 
     /**

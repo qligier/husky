@@ -26,10 +26,7 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.InputStream;
 import java.time.LocalDate;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.BiFunction;
 
 import static org.husky.common.enums.CodeSystems.SWISS_EPR_SPID;
@@ -98,6 +95,7 @@ public class ChAppcUnmarshaller {
                 .map(object -> OptionalUtils.castOrNull(object, PolicySetType.class))
                 .filter(Objects::nonNull)
                 .map(ChAppcUnmarshaller::extractChildPolicySet)
+                .sorted(Comparator.comparingInt(ChChildPolicySet::getSortScore))
                 .toList();
 
         return new ChPolicySet(

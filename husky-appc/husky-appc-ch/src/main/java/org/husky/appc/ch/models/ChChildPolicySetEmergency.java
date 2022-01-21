@@ -35,7 +35,7 @@ public class ChChildPolicySetEmergency extends ChChildPolicySet {
      * {@inheritDoc}
      */
     public int getSortScore() {
-        return 3;
+        return 0;
     }
 
     /**

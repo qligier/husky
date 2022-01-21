@@ -69,7 +69,7 @@ public class ChChildPolicySetGroup extends ChChildPolicySet {
      * {@inheritDoc}
      */
     public int getSortScore() {
-        return 0;
+        return 3;
     }
 
     /**
