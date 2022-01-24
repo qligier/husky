@@ -63,7 +63,7 @@ public enum ChAction {
      * @param urn The URN to find in the enum.
      * @return {@code true} if the URN is found in the enum, {@code false} otherwise.
      */
-    public boolean urnInEnum(@Nullable final String urn) {
+    public static boolean urnInEnum(@Nullable final String urn) {
         return Arrays.stream(values()).anyMatch(action -> action.getUrn().equals(urn));
     }
 
@@ -74,7 +74,7 @@ public enum ChAction {
      * @return the {@link ChAction} with the same URN.
      * @throws IllegalArgumentException if the URN is not found in the enum.
      */
-    public ChAction getByUrn(@Nullable final String urn) {
+    public static ChAction getByUrn(@Nullable final String urn) {
         return Arrays.stream(values())
                 .filter(action -> action.getUrn().equals(urn))
                 .findAny()

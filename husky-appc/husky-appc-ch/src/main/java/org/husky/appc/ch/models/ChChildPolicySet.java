@@ -37,12 +37,12 @@ public abstract class ChChildPolicySet {
     protected String description;
 
     /**
-     * The set of contained policies.
+     * The set of contained policies (conjunctive sequence).
      */
     protected final Set<@NonNull ChAccessLevelPolicy> policies;
 
     /**
-     * The set of actions.
+     * The set of actions (disjunctive sequence).
      */
     protected final Set<@NonNull ChAction> actions;
 
@@ -52,7 +52,7 @@ public abstract class ChChildPolicySet {
      * @param id          The policy set identifier.
      * @param description The description.
      * @param policies    The set of contained policies.
-     * @param actions     The set of action.
+     * @param actions     The set of action (disjunctive sequence).
      */
     protected ChChildPolicySet(final String id,
                                @Nullable final String description,
@@ -119,7 +119,7 @@ public abstract class ChChildPolicySet {
     protected abstract TargetType createPolicySetTarget();
 
     /**
-     * Creates the policy set actions.
+     * Creates the policy set actions as a disjunctive sequence.
      *
      * @return the created {@link ActionsType}.
      */

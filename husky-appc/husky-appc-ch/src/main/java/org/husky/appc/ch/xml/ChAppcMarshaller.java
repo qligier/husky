@@ -19,7 +19,6 @@ import org.husky.appc.models.*;
 import org.husky.appc.xml.AppcMarshaller;
 
 import javax.xml.bind.JAXBException;
-import java.util.Comparator;
 import java.util.Objects;
 
 import static org.husky.common.enums.CodeSystems.SWISS_EPR_SPID;

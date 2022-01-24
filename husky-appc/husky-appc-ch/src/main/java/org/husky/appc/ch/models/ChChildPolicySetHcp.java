@@ -23,6 +23,7 @@ import org.husky.common.utils.datatypes.Gln;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * The model of a policy set targeting a healthcare professional.
@@ -36,6 +37,28 @@ public class ChChildPolicySetHcp extends ChChildPolicySet {
      */
     private String hcpGln;
 
+    /**
+     * Simple constructor. A random Id is assigned.
+     *
+     * @param policies    The set of contained policies.
+     * @param actions     The set of action.
+     * @param hcpGln      The healthcare professional GLN number.
+     */
+    public ChChildPolicySetHcp(final Set<@NonNull ChAccessLevelPolicy> policies,
+                               final Set<@NonNull ChAction> actions,
+                               final String hcpGln) {
+        this(UUID.randomUUID().toString(), null, policies, actions, hcpGln);
+    }
+
+    /**
+     * Full constructor.
+     *
+     * @param id          The policy set identifier.
+     * @param description The description.
+     * @param policies    The set of contained policies.
+     * @param actions     The set of action.
+     * @param hcpGln      The healthcare professional GLN number.
+     */
     public ChChildPolicySetHcp(final String id,
                                @Nullable final String description,
                                final Set<@NonNull ChAccessLevelPolicy> policies,
@@ -78,9 +101,21 @@ public class ChChildPolicySetHcp extends ChChildPolicySet {
                 new SubjectAttributeDesignatorType(AppcUrns.OASIS_SUBJECT_ROLE, AppcUrns.CV),
                 AppcUrns.FUNCTION_CV_EQUAL
         );
+        // Conjunctive sequence of subject matches
         final var target = new TargetType(new SubjectsType(new SubjectType(List.of(subjectMatch1, subjectMatch2,
                 subjectMatch3))));
         target.setActions(this.createPolicySetActions());
         return target;
+    }
+
+    @Override
+    public String toString() {
+        return "ChChildPolicySetHcp{" +
+                "id='" + this.id + '\'' +
+                ", description='" + this.description + '\'' +
+                ", policies=" + this.policies +
+                ", actions=" + this.actions +
+                ", hcpGln='" + this.hcpGln + '\'' +
+                '}';
     }
 }

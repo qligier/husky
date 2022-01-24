@@ -22,6 +22,7 @@ import org.husky.appc.models.*;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * The model of a representative target.
@@ -31,10 +32,32 @@ import java.util.Set;
 public class ChChildPolicySetRepresentative extends ChChildPolicySet {
 
     /**
-     * The representative ID.
+     * The representative Id.
      */
     private String representativeId;
 
+    /**
+     * Simple constructor. A random Id is assigned.
+     *
+     * @param policies         The set of contained policies.
+     * @param actions          The set of action.
+     * @param representativeId The representative Id.
+     */
+    public ChChildPolicySetRepresentative(final Set<@NonNull ChAccessLevelPolicy> policies,
+                                          final Set<@NonNull ChAction> actions,
+                                          final String representativeId) {
+        this(UUID.randomUUID().toString(), null, policies, actions, representativeId);
+    }
+
+    /**
+     * Full constructor.
+     *
+     * @param id               The policy set identifier.
+     * @param description      The description.
+     * @param policies         The set of contained policies.
+     * @param actions          The set of action.
+     * @param representativeId The representative Id.
+     */
     public ChChildPolicySetRepresentative(final String id,
                                           @Nullable final String description,
                                           final Set<@NonNull ChAccessLevelPolicy> policies,
@@ -71,9 +94,21 @@ public class ChChildPolicySetRepresentative extends ChChildPolicySet {
                 new SubjectAttributeDesignatorType(AppcUrns.OASIS_SUBJECT_ROLE, AppcUrns.CV),
                 AppcUrns.FUNCTION_CV_EQUAL
         );
+        // Conjunctive sequence of subject matches
         final var target = new TargetType(new SubjectsType(new SubjectType(List.of(subjectMatch1, subjectMatch2,
                 subjectMatch3))));
         target.setActions(this.createPolicySetActions());
         return target;
+    }
+
+    @Override
+    public String toString() {
+        return "ChChildPolicySetRepresentative{" +
+                "id='" + this.id + '\'' +
+                ", description='" + this.description + '\'' +
+                ", policies=" + this.policies +
+                ", actions=" + this.actions +
+                ", representativeId='" + this.representativeId + '\'' +
+                '}';
     }
 }

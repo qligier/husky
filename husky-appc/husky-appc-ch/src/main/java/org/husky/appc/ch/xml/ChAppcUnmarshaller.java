@@ -14,6 +14,7 @@ package org.husky.appc.ch.xml;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.husky.appc.AppcUrns;
 import org.husky.appc.ch.enums.ChAccessLevelPolicy;
+import org.husky.appc.ch.enums.ChAction;
 import org.husky.appc.ch.errors.InvalidSwissAppcContentException;
 import org.husky.appc.ch.models.*;
 import org.husky.appc.models.*;
@@ -28,6 +29,7 @@ import java.io.InputStream;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.function.BiFunction;
+import java.util.stream.Collectors;
 
 import static org.husky.common.enums.CodeSystems.SWISS_EPR_SPID;
 
@@ -130,16 +132,32 @@ public class ChAppcUnmarshaller {
         final String id = Optional.ofNullable(policySet.getPolicySetId())
                         .orElseThrow(() -> new InvalidSwissAppcContentException("The PolicySet has no Id"));
         final String description = policySet.getDescription();
-        final List<@NonNull ChAccessLevelPolicy> policies = policySet.getPolicySetOrPolicyOrPolicySetIdReference().stream()
+        final Set<ChAccessLevelPolicy> policies = policySet.getPolicySetOrPolicyOrPolicySetIdReference().stream()
                 .map(JAXBElement::getValue)
                 .filter(IdReferenceType.class::isInstance)
                 .map(IdReferenceType.class::cast)
                 .map(IdReferenceType::getValue)
                 .filter(ChAccessLevelPolicy::urnInEnum)
                 .map(ChAccessLevelPolicy::getByUrn)
-                .toList();
+                .collect(Collectors.toUnmodifiableSet());
+        final Set<ChAction> actions = Optional.ofNullable(policySet.getTarget())
+                .map(TargetType::getActions)
+                .map(ActionsType::getAction)
+                .orElseGet(Collections::emptyList).stream()
+                .map(ActionType::getActionMatch)
+                .map(OptionalUtils::getListOnlyElement)
+                .filter(Objects::nonNull)
+                .filter(actionMatch -> actionMatch.getActionAttributeDesignator() != null)
+                .filter(actionMatch -> AppcUrns.OASIS_ACTION_ID.equals(actionMatch.getActionAttributeDesignator().getAttributeId()))
+                .map(ActionMatchType::getAttributeValue)
+                .filter(Objects::nonNull)
+                .map(AttributeValueType::getStringContent)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .map(ChAction::getByUrn)
+                .collect(Collectors.toUnmodifiableSet());
 
-        final BiFunction<List<@NonNull SubjectMatchType>, String, String> extractValue =
+        final BiFunction<List<SubjectMatchType>, String, String> extractValue =
                 (subjectMatches, attributeId) -> subjectMatches.stream()
                     .filter(subjectMatch -> subjectMatch.getSubjectAttributeDesignator() != null)
                     .filter(subjectMatch -> attributeId.equals(subjectMatch.getSubjectAttributeDesignator().getAttributeId()))
@@ -147,7 +165,7 @@ public class ChAppcUnmarshaller {
                     .map(SubjectMatchType::getAttributeValue)
                     .flatMap(AttributeValueType::getStringContent)
                     .orElse(null);
-        final BiFunction<List<@NonNull SubjectMatchType>, String, String> extractCv =
+        final BiFunction<List<SubjectMatchType>, String, String> extractCv =
                 (subjectMatches, attributeId) -> subjectMatches.stream()
                         .filter(subjectMatch -> subjectMatch.getSubjectAttributeDesignator() != null)
                         .filter(subjectMatch -> attributeId.equals(subjectMatch.getSubjectAttributeDesignator().getAttributeId()))
@@ -165,7 +183,7 @@ public class ChAppcUnmarshaller {
                         .findAny()
                         .orElse(null);
 
-        final List<@NonNull SubjectMatchType> subjectMatches = Optional.ofNullable(policySet.getTarget())
+        final List<SubjectMatchType> subjectMatches = Optional.ofNullable(policySet.getTarget())
                 .map(TargetType::getSubjects)
                 .map(SubjectsType::getSubject)
                 .map(OptionalUtils::getListOnlyElement)
@@ -192,12 +210,13 @@ public class ChAppcUnmarshaller {
                 .orElse(null);
 
         if ("REP".equals(role) && subjectId != null) {
-            return new ChChildPolicySetRepresentative(id, description, policies, subjectId);
-        } else if ("HCP".equals(role) && subjectId != null) {
-            return new ChChildPolicySetHcp(id, description, policies, subjectId);
+            return new ChChildPolicySetRepresentative(id, description, policies, actions, subjectId);
+        } else if ("HCP".equals(role) && subjectId != null && !"EMER".equals(purposeOfUse)) {
+            return new ChChildPolicySetHcp(id, description, policies, actions, subjectId);
         } else if (organizationId != null && endDate != null) {
-            return new ChChildPolicySetGroup(id, description, policies, organizationId, endDate);
-        } else if ("EMER".equals(purposeOfUse)) {
+            return new ChChildPolicySetGroup(id, description, policies, actions, organizationId, endDate);
+        } else if ("EMER".equals(purposeOfUse) && "HCP".equals(role) && ChChildPolicySetEmergency.POLICIES.equals(policies)
+                && ChChildPolicySetEmergency.ACTIONS.equals(actions)) {
             return new ChChildPolicySetEmergency(id, description);
         }
         throw new InvalidSwissAppcContentException("The PolicySet is unparsable");
