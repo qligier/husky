@@ -49,13 +49,12 @@ public class ChAppcMarshaller {
 
         final var policySet = new PolicySetType();
         policySet.setPolicySetId(swissPolicySet.getPolicySetId());
-        policySet.setPolicyCombiningAlgId(AppcUrns.OASIS_ALGO_FIRST_APPLICABLE);
+        policySet.setPolicyCombiningAlgId(AppcUrns.OASIS_ALGO_DENY_OVERRIDES);
         policySet.setDescription(swissPolicySet.getDescription());
         policySet.setTarget(createPatientTarget(swissPolicySet.getPatientEprSpid()));
 
         final var appcFactory = new ObjectFactory();
         swissPolicySet.getPolicySets().stream()
-                .sorted(Comparator.comparingInt(ChChildPolicySet::getSortScore))
                 .map(ChChildPolicySet::createPolicySet)
                 .map(appcFactory::createPolicySet)
                 .forEach(child -> policySet.getPolicySetOrPolicyOrPolicySetIdReference().add(child));

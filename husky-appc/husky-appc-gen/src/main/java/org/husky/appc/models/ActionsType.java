@@ -17,6 +17,7 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlType;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 
 /**
@@ -44,6 +45,17 @@ public class ActionsType {
 
     @XmlElement(name = "Action", required = true)
     protected List<ActionType> action;
+
+    public ActionsType() {
+    }
+
+    public ActionsType(@NonNull final ActionType action) {
+        this.action = new ArrayList<>(List.of(Objects.requireNonNull(action)));
+    }
+
+    public ActionsType(@NonNull final List<ActionType> actions) {
+        this.action = Objects.requireNonNull(actions);
+    }
 
     /**
      * Gets the value of the action property.

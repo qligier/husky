@@ -16,11 +16,13 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.husky.appc.AppcUrns;
 import org.husky.appc.ch.ChAppcUrns;
 import org.husky.appc.ch.enums.ChAccessLevelPolicy;
+import org.husky.appc.ch.enums.ChAction;
 import org.husky.appc.models.*;
 import org.husky.common.utils.datatypes.Gln;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * The model of a policy set targeting a healthcare professional.
@@ -36,9 +38,10 @@ public class ChChildPolicySetHcp extends ChChildPolicySet {
 
     public ChChildPolicySetHcp(final String id,
                                @Nullable final String description,
-                               final List<@NonNull ChAccessLevelPolicy> policies,
+                               final Set<@NonNull ChAccessLevelPolicy> policies,
+                               final Set<@NonNull ChAction> actions,
                                final String hcpGln) {
-        super(id, description, policies);
+        super(id, description, policies, actions);
         if (!Gln.match(Objects.requireNonNull(hcpGln))) {
             throw new IllegalArgumentException("The healthcare professional GLN is invalid");
         }
@@ -54,13 +57,6 @@ public class ChChildPolicySetHcp extends ChChildPolicySet {
             throw new IllegalArgumentException("The healthcare professional GLN is invalid");
         }
         this.hcpGln = hcpGln;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public int getSortScore() {
-        return 2;
     }
 
     /**
@@ -82,6 +78,9 @@ public class ChChildPolicySetHcp extends ChChildPolicySet {
                 new SubjectAttributeDesignatorType(AppcUrns.OASIS_SUBJECT_ROLE, AppcUrns.CV),
                 AppcUrns.FUNCTION_CV_EQUAL
         );
-        return new TargetType(new SubjectsType(new SubjectType(List.of(subjectMatch1, subjectMatch2, subjectMatch3))));
+        final var target = new TargetType(new SubjectsType(new SubjectType(List.of(subjectMatch1, subjectMatch2,
+                subjectMatch3))));
+        target.setActions(this.createPolicySetActions());
+        return target;
     }
 }

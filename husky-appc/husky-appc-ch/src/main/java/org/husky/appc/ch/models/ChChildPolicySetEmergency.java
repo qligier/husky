@@ -15,9 +15,11 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.husky.appc.AppcUrns;
 import org.husky.appc.models.*;
 
+import java.util.EnumSet;
 import java.util.List;
 
 import static org.husky.appc.ch.enums.ChAccessLevelPolicy.PERMIT_READING_NORMAL;
+import static org.husky.appc.ch.enums.ChAction.*;
 
 /**
  * The model of a policy set targeting healthcare professionals accessing the patient record in an emergency purpose.
@@ -28,14 +30,10 @@ public class ChChildPolicySetEmergency extends ChChildPolicySet {
 
     public ChChildPolicySetEmergency(final String id,
                                @Nullable final String description) {
-        super(id, description, List.of(PERMIT_READING_NORMAL));
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public int getSortScore() {
-        return 0;
+        super(id, description, EnumSet.of(PERMIT_READING_NORMAL), EnumSet.of(
+                REGISTRY_STORED_QUERY, RETRIEVE_DOCUMENT_SET, CROSS_GATEWAY_QUERY, CROSS_GATEWAY_RETRIEVE,
+                RETRIEVE_IMAGING_DOCUMENT_SET, CROSS_GATEWAY_RETRIEVE_IMAGING_DOCUMENT_SET
+        ));
     }
 
     /**
@@ -52,6 +50,8 @@ public class ChChildPolicySetEmergency extends ChChildPolicySet {
                 new SubjectAttributeDesignatorType(AppcUrns.OASIS_SUBJECT_PURPOSE_USE, AppcUrns.CV),
                 AppcUrns.FUNCTION_CV_EQUAL
         );
-        return new TargetType(new SubjectsType(new SubjectType(List.of(subjectMatch1, subjectMatch2))));
+        final var target = new TargetType(new SubjectsType(new SubjectType(List.of(subjectMatch1, subjectMatch2))));
+        target.setActions(this.createPolicySetActions());
+        return target;
     }
 }

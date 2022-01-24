@@ -9,7 +9,10 @@
  */
 package org.husky.appc.models;
 
+import org.checkerframework.checker.nullness.qual.NonNull;
+
 import javax.xml.bind.annotation.*;
+import java.util.Objects;
 
 
 /**
@@ -51,6 +54,17 @@ public class ActionMatchType {
     @XmlAttribute(name = "MatchId", required = true)
     @XmlSchemaType(name = "anyURI")
     protected String matchId;
+
+    public ActionMatchType() {
+    }
+
+    public ActionMatchType(@NonNull final AttributeValueType attributeValue,
+                           @NonNull final AttributeDesignatorType actionAttributeDesignator,
+                           @NonNull final String matchId) {
+        this.attributeValue = Objects.requireNonNull(attributeValue);
+        this.actionAttributeDesignator = Objects.requireNonNull(actionAttributeDesignator);
+        this.matchId = Objects.requireNonNull(matchId);
+    }
 
     /**
      * Gets the value of the attributeValue property.

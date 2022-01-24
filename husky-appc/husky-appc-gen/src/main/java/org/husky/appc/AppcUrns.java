@@ -34,6 +34,7 @@ public class AppcUrns {
     /**
      * URNs defined by OASIS.
      */
+    public static final String OASIS_ACTION_ID = "urn:oasis:names:tc:xacml:1.0:action:action-id";
     public static final String OASIS_SUBJECT_ID = "urn:oasis:names:tc:xacml:1.0:subject:subject-id";
     public static final String OASIS_SUBJECT_ID_QUALIFIER = "urn:oasis:names:tc:xacml:1.0:subject:subject-id-qualifier";
     public static final String OASIS_SUBJECT_ROLE = "urn:oasis:names:tc:xacml:2.0:subject:role";

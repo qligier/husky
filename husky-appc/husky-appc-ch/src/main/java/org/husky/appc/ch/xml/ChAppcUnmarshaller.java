@@ -95,7 +95,6 @@ public class ChAppcUnmarshaller {
                 .map(object -> OptionalUtils.castOrNull(object, PolicySetType.class))
                 .filter(Objects::nonNull)
                 .map(ChAppcUnmarshaller::extractChildPolicySet)
-                .sorted(Comparator.comparingInt(ChChildPolicySet::getSortScore))
                 .toList();
 
         return new ChPolicySet(

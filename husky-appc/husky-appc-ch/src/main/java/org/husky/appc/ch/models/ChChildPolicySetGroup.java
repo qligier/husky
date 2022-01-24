@@ -15,11 +15,13 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.husky.appc.AppcUrns;
 import org.husky.appc.ch.enums.ChAccessLevelPolicy;
+import org.husky.appc.ch.enums.ChAction;
 import org.husky.appc.models.*;
 
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * The model of a group target.
@@ -40,10 +42,11 @@ public class ChChildPolicySetGroup extends ChChildPolicySet {
 
     public ChChildPolicySetGroup(final String id,
                                  @Nullable final String description,
-                                 final List<@NonNull ChAccessLevelPolicy> policies,
+                                 final Set<@NonNull ChAccessLevelPolicy> policies,
+                                 final Set<@NonNull ChAction> actions,
                                  final String groupOid,
                                  final LocalDate validityEndDate) {
-        super(id, description, policies);
+        super(id, description, policies, actions);
         this.setGroupOid(groupOid);
         this.validityEndDate = Objects.requireNonNull(validityEndDate);
     }
@@ -68,13 +71,6 @@ public class ChChildPolicySetGroup extends ChChildPolicySet {
     /**
      * {@inheritDoc}
      */
-    public int getSortScore() {
-        return 3;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
     protected TargetType createPolicySetTarget() {
         final var subjectMatch1 = new SubjectMatchType(
                 new AttributeValueType("urn:oid:" + this.groupOid, AppcUrns.XS_ANY_URI),
@@ -92,6 +88,7 @@ public class ChChildPolicySetGroup extends ChChildPolicySet {
                 new AttributeDesignatorType(AppcUrns.OASIS_ENV_CURRENT_DATE, AppcUrns.XS_DATE),
                 AppcUrns.FUNCTION_DATE_GT_EQ
         ))));
+        target.setActions(this.createPolicySetActions());
         return target;
     }
 }

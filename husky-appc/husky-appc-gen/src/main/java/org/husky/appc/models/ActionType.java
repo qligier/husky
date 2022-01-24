@@ -17,6 +17,7 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlType;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 
 /**
@@ -44,6 +45,17 @@ public class ActionType {
 
     @XmlElement(name = "ActionMatch", required = true)
     protected List<ActionMatchType> actionMatch;
+
+    public ActionType() {
+    }
+
+    public ActionType(@NonNull final ActionMatchType actionMatch) {
+        this.actionMatch = new ArrayList<>(List.of(Objects.requireNonNull(actionMatch)));
+    }
+
+    public ActionType(@NonNull final List<ActionMatchType> actionMatches) {
+        this.actionMatch = Objects.requireNonNull(actionMatches);
+    }
 
     /**
      * Gets the value of the actionMatch property.

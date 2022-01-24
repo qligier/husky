@@ -16,10 +16,12 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.husky.appc.AppcUrns;
 import org.husky.appc.ch.ChAppcUrns;
 import org.husky.appc.ch.enums.ChAccessLevelPolicy;
+import org.husky.appc.ch.enums.ChAction;
 import org.husky.appc.models.*;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * The model of a representative target.
@@ -35,9 +37,10 @@ public class ChChildPolicySetRepresentative extends ChChildPolicySet {
 
     public ChChildPolicySetRepresentative(final String id,
                                           @Nullable final String description,
-                                          final List<@NonNull ChAccessLevelPolicy> policies,
+                                          final Set<@NonNull ChAccessLevelPolicy> policies,
+                                          final Set<@NonNull ChAction> actions,
                                           final String representativeId) {
-        super(id, description, policies);
+        super(id, description, policies, actions);
         this.representativeId = Objects.requireNonNull(representativeId);
     }
 
@@ -47,13 +50,6 @@ public class ChChildPolicySetRepresentative extends ChChildPolicySet {
 
     public void setRepresentativeId(final String representativeId) {
         this.representativeId = Objects.requireNonNull(representativeId);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public int getSortScore() {
-        return 1;
     }
 
     /**
@@ -75,6 +71,9 @@ public class ChChildPolicySetRepresentative extends ChChildPolicySet {
                 new SubjectAttributeDesignatorType(AppcUrns.OASIS_SUBJECT_ROLE, AppcUrns.CV),
                 AppcUrns.FUNCTION_CV_EQUAL
         );
-        return new TargetType(new SubjectsType(new SubjectType(List.of(subjectMatch1, subjectMatch2, subjectMatch3))));
+        final var target = new TargetType(new SubjectsType(new SubjectType(List.of(subjectMatch1, subjectMatch2,
+                subjectMatch3))));
+        target.setActions(this.createPolicySetActions());
+        return target;
     }
 }

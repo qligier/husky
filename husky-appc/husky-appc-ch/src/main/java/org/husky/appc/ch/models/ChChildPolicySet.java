@@ -13,14 +13,10 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.husky.appc.AppcUrns;
 import org.husky.appc.ch.enums.ChAccessLevelPolicy;
-import org.husky.appc.models.IdReferenceType;
-import org.husky.appc.models.ObjectFactory;
-import org.husky.appc.models.PolicySetType;
-import org.husky.appc.models.TargetType;
+import org.husky.appc.ch.enums.ChAction;
+import org.husky.appc.models.*;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * The model of an abstract Swiss target.
@@ -41,16 +37,31 @@ public abstract class ChChildPolicySet {
     protected String description;
 
     /**
-     * The list of contained policies.
+     * The set of contained policies.
      */
-    protected final List<@NonNull ChAccessLevelPolicy> policies;
+    protected final Set<@NonNull ChAccessLevelPolicy> policies;
 
+    /**
+     * The set of actions.
+     */
+    protected final Set<@NonNull ChAction> actions;
+
+    /**
+     * Constructor.
+     *
+     * @param id          The policy set identifier.
+     * @param description The description.
+     * @param policies    The set of contained policies.
+     * @param actions     The set of action.
+     */
     protected ChChildPolicySet(final String id,
                                @Nullable final String description,
-                               final List<@NonNull ChAccessLevelPolicy> policies) {
+                               final Set<@NonNull ChAccessLevelPolicy> policies,
+                               final Set<@NonNull ChAction> actions) {
         this.id = Objects.requireNonNull(id);
         this.description = description;
-        this.policies = new ArrayList<>(Objects.requireNonNull(policies));
+        this.policies = EnumSet.copyOf(Objects.requireNonNull(policies));
+        this.actions = EnumSet.copyOf(Objects.requireNonNull(actions));
     }
 
     /**
@@ -92,22 +103,13 @@ public abstract class ChChildPolicySet {
         this.description = description;
     }
 
-    public List<@NonNull ChAccessLevelPolicy> getPolicies() {
+    public Set<@NonNull ChAccessLevelPolicy> getPolicies() {
         return policies;
     }
 
-    /**
-     * Returns a score that is used to sort the different kind of policy sets in a Swiss APPC document.
-     *
-     * <p>It should go as follows:
-     * <ol>
-     *     <li>Access rights for emergency access</li>
-     *     <li>Access rights for representatives</li>
-     *     <li>Access rights for healthcare professionals</li>
-     *     <li>Access rights for groups</li>
-     * </ol>
-     */
-    public abstract int getSortScore();
+    public Set<@NonNull ChAction> getActions() {
+        return actions;
+    }
 
     /**
      * Creates the policy set target.
@@ -115,4 +117,21 @@ public abstract class ChChildPolicySet {
      * @return the created {@link TargetType}.
      */
     protected abstract TargetType createPolicySetTarget();
+
+    /**
+     * Creates the policy set actions.
+     *
+     * @return the created {@link ActionsType}.
+     */
+    protected ActionsType createPolicySetActions() {
+        final var policySetActions = new ActionsType();
+        for (final var chAction : this.actions) {
+            policySetActions.getAction().add(new ActionType(new ActionMatchType(
+                    new AttributeValueType(chAction.getUrn(), AppcUrns.XS_ANY_URI),
+                    new AttributeDesignatorType(AppcUrns.OASIS_ACTION_ID, AppcUrns.XS_ANY_URI),
+                    AppcUrns.FUNCTION_ANY_URI_EQUAL
+            )));
+        }
+        return policySetActions;
+    }
 }

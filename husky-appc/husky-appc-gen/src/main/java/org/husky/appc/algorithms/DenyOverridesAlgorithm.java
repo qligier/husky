@@ -8,7 +8,6 @@
  * whereas medshare GmbH is the initial and main contributor/author of the eHealth Connector.
  *
  */
-
 package org.husky.appc.algorithms;
 
 import org.husky.appc.enums.AuthorizationDecisionResult;

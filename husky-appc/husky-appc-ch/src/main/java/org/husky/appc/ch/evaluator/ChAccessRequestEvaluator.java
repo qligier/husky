@@ -8,11 +8,9 @@
  * whereas medshare GmbH is the initial and main contributor/author of the eHealth Connector.
  *
  */
-
 package org.husky.appc.ch.evaluator;
 
 import org.husky.appc.algorithms.DenyOverridesAlgorithm;
-import org.husky.appc.algorithms.FirstApplicableAlgorithm;
 import org.husky.appc.algorithms.AuthorizationDecision;
 import org.husky.appc.ch.enums.ChAccessLevelPolicy;
 import org.husky.appc.ch.models.*;
@@ -21,25 +19,23 @@ import org.husky.appc.enums.RuleEffect;
 import org.husky.communication.ch.enums.PurposeOfUse;
 import org.husky.communication.ch.enums.Role;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.time.Instant;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.List;
+import java.util.Set;
 
 /**
  * husky
  *
  * @author Quentin Ligier
  **/
+@ThreadSafe
 public class ChAccessRequestEvaluator {
 
     /**
-     *
-     */
-    private final FirstApplicableAlgorithm firstApplicableAlgorithm = new FirstApplicableAlgorithm();
-
-    /**
-     *
+     * The implementation of the Deny-overrides policy-combining algorithm of a policy set.
      */
     private final DenyOverridesAlgorithm denyOverridesAlgorithm = new DenyOverridesAlgorithm();
 
@@ -56,25 +52,25 @@ public class ChAccessRequestEvaluator {
         final List<AuthorizationDecision> decisions = authorizationPolicies.getPolicySets().stream()
                 .map(policySet -> this.evaluatePolicySet(accessRequest, policySet))
                 .toList();
-        return this.firstApplicableAlgorithm.combinePolicies(decisions);
+        return this.denyOverridesAlgorithm.combinePolicies(decisions);
     }
 
     AuthorizationDecision evaluatePolicySet(final ChAccessRequest accessRequest,
-                                   final ChChildPolicySet authorizationPolicy) {
+                                            final ChChildPolicySet authorizationPolicy) {
         if (authorizationPolicy instanceof final ChChildPolicySetEmergency emergencyPolicy) {
-            return this.evaluatePolicySet(accessRequest, emergencyPolicy);
+            return this.evaluateEmergencyPolicySet(accessRequest, emergencyPolicy);
         } else if (authorizationPolicy instanceof final ChChildPolicySetRepresentative representativePolicy) {
 
         } else if (authorizationPolicy instanceof final ChChildPolicySetHcp hcpPolicy) {
 
         } else if (authorizationPolicy instanceof final ChChildPolicySetGroup groupPolicy) {
-            return this.evaluatePolicySet(accessRequest, groupPolicy);
+            return this.evaluateGroupPolicySet(accessRequest, groupPolicy);
         }
         throw new IllegalArgumentException("The authorization policy is unknown");
     }
 
-    AuthorizationDecision evaluatePolicySet(final ChAccessRequest accessRequest,
-                                            final ChChildPolicySetEmergency emergencyPolicy) {
+    AuthorizationDecision evaluateEmergencyPolicySet(final ChAccessRequest accessRequest,
+                                                     final ChChildPolicySetEmergency emergencyPolicy) {
         if (accessRequest.purposeOfUse() != PurposeOfUse.EMERGENCY_ACCESS) {
             return new AuthorizationDecision(AuthorizationDecisionResult.NOT_APPLICABLE);
         }
@@ -85,8 +81,8 @@ public class ChAccessRequestEvaluator {
         return this.evaluatePolicies(accessRequest, emergencyPolicy.getPolicies());
     }
 
-    AuthorizationDecision evaluatePolicySet(final ChAccessRequest accessRequest,
-                                            final ChChildPolicySetGroup groupPolicy) {
+    AuthorizationDecision evaluateGroupPolicySet(final ChAccessRequest accessRequest,
+                                                 final ChChildPolicySetGroup groupPolicy) {
         if (!accessRequest.groupGlns().contains(groupPolicy.getGroupOid())) {
             return new AuthorizationDecision(AuthorizationDecisionResult.NOT_APPLICABLE);
         }
@@ -99,7 +95,7 @@ public class ChAccessRequestEvaluator {
     }
 
     AuthorizationDecision evaluatePolicies(final ChAccessRequest accessRequest,
-                                           final List<ChAccessLevelPolicy> policies) {
+                                           final Set<ChAccessLevelPolicy> policies) {
         final List<AuthorizationDecision> decisions = policies.stream()
                 .map(policy -> this.evaluatePolicy(accessRequest, policy))
                 .toList();
