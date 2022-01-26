@@ -17,6 +17,7 @@ import org.husky.appc.AppcUrns;
 import org.husky.appc.ch.enums.ChAccessLevelPolicy;
 import org.husky.appc.ch.enums.ChAction;
 import org.husky.appc.models.*;
+import org.husky.common.ch.enums.ConfidentialityCode;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -46,14 +47,17 @@ public class ChChildPolicySetGroup extends ChChildPolicySet {
      *
      * @param policies        The set of contained policies.
      * @param actions         The set of action.
+     * @param confidentialityCodes The confidentiality codes of the retrieved documents if applicable (disjunctive
+     *                             sequence) or {@code null}.
      * @param groupOid        The group OID number.
      * @param validityEndDate The inclusive end date until which the group is selected.
      */
     public ChChildPolicySetGroup(final Set<@NonNull ChAccessLevelPolicy> policies,
                                  final Set<@NonNull ChAction> actions,
+                                 @Nullable final Set<@NonNull ConfidentialityCode> confidentialityCodes,
                                  final String groupOid,
                                  final LocalDate validityEndDate) {
-        this(UUID.randomUUID().toString(), null, policies, actions, groupOid, validityEndDate);
+        this(UUID.randomUUID().toString(), null, policies, actions, confidentialityCodes, groupOid, validityEndDate);
     }
 
     /**
@@ -63,6 +67,8 @@ public class ChChildPolicySetGroup extends ChChildPolicySet {
      * @param description     The description.
      * @param policies        The set of contained policies.
      * @param actions         The set of action.
+     * @param confidentialityCodes The confidentiality codes of the retrieved documents if applicable (disjunctive
+     *                             sequence) or {@code null}.
      * @param groupOid        The group OID number.
      * @param validityEndDate The inclusive end date until which the group is selected.
      */
@@ -70,9 +76,10 @@ public class ChChildPolicySetGroup extends ChChildPolicySet {
                                  @Nullable final String description,
                                  final Set<@NonNull ChAccessLevelPolicy> policies,
                                  final Set<@NonNull ChAction> actions,
+                                 @Nullable final Set<@NonNull ConfidentialityCode> confidentialityCodes,
                                  final String groupOid,
                                  final LocalDate validityEndDate) {
-        super(id, description, policies, actions);
+        super(id, description, policies, actions, confidentialityCodes);
         this.setGroupOid(groupOid);
         this.validityEndDate = Objects.requireNonNull(validityEndDate);
     }

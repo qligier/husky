@@ -18,6 +18,7 @@ import org.husky.appc.ch.ChAppcUrns;
 import org.husky.appc.ch.enums.ChAccessLevelPolicy;
 import org.husky.appc.ch.enums.ChAction;
 import org.husky.appc.models.*;
+import org.husky.common.ch.enums.ConfidentialityCode;
 
 import java.util.List;
 import java.util.Objects;
@@ -41,12 +42,15 @@ public class ChChildPolicySetRepresentative extends ChChildPolicySet {
      *
      * @param policies         The set of contained policies.
      * @param actions          The set of action.
+     * @param confidentialityCodes The confidentiality codes of the retrieved documents if applicable (disjunctive
+     *                             sequence) or {@code null}.
      * @param representativeId The representative Id.
      */
     public ChChildPolicySetRepresentative(final Set<@NonNull ChAccessLevelPolicy> policies,
                                           final Set<@NonNull ChAction> actions,
+                                          @Nullable final Set<@NonNull ConfidentialityCode> confidentialityCodes,
                                           final String representativeId) {
-        this(UUID.randomUUID().toString(), null, policies, actions, representativeId);
+        this(UUID.randomUUID().toString(), null, policies, actions, confidentialityCodes, representativeId);
     }
 
     /**
@@ -56,14 +60,17 @@ public class ChChildPolicySetRepresentative extends ChChildPolicySet {
      * @param description      The description.
      * @param policies         The set of contained policies.
      * @param actions          The set of action.
+     * @param confidentialityCodes The confidentiality codes of the retrieved documents if applicable (disjunctive
+     *                             sequence) or {@code null}.
      * @param representativeId The representative Id.
      */
     public ChChildPolicySetRepresentative(final String id,
                                           @Nullable final String description,
                                           final Set<@NonNull ChAccessLevelPolicy> policies,
                                           final Set<@NonNull ChAction> actions,
+                                          @Nullable final Set<@NonNull ConfidentialityCode> confidentialityCodes,
                                           final String representativeId) {
-        super(id, description, policies, actions);
+        super(id, description, policies, actions, confidentialityCodes);
         this.representativeId = Objects.requireNonNull(representativeId);
     }
 

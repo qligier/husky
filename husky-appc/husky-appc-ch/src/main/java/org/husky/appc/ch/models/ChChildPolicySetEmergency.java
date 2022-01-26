@@ -59,7 +59,8 @@ public class ChChildPolicySetEmergency extends ChChildPolicySet {
      */
     public ChChildPolicySetEmergency(final String id,
                                @Nullable final String description) {
-        super(id, description, POLICIES, ACTIONS);
+        super(id, description, POLICIES, ACTIONS, null);
+        // TODO: confidentiality codes
     }
 
     /**

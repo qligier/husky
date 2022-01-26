@@ -15,6 +15,7 @@ import org.husky.appc.AppcUrns;
 import org.husky.appc.ch.enums.ChAccessLevelPolicy;
 import org.husky.appc.ch.enums.ChAction;
 import org.husky.appc.models.*;
+import org.husky.common.ch.enums.ConfidentialityCode;
 
 import java.util.*;
 
@@ -47,21 +48,33 @@ public abstract class ChChildPolicySet {
     protected final Set<@NonNull ChAction> actions;
 
     /**
+     * The confidentiality codes of the retrieved documents if applicable (disjunctive sequence) or {@code null}.
+     */
+    @Nullable
+    protected final Set<@NonNull ConfidentialityCode> confidentialityCodes;
+
+    /**
      * Constructor.
      *
-     * @param id          The policy set identifier.
-     * @param description The description.
-     * @param policies    The set of contained policies.
-     * @param actions     The set of action (disjunctive sequence).
+     * @param id                   The policy set identifier.
+     * @param description          The description.
+     * @param policies             The set of contained policies.
+     * @param actions              The set of action (disjunctive sequence).
+     * @param confidentialityCodes The confidentiality codes of the retrieved documents if applicable (disjunctive
+     *                             sequence) or {@code null}.
      */
     protected ChChildPolicySet(final String id,
                                @Nullable final String description,
                                final Set<@NonNull ChAccessLevelPolicy> policies,
-                               final Set<@NonNull ChAction> actions) {
+                               final Set<@NonNull ChAction> actions,
+                               @Nullable final Set<@NonNull ConfidentialityCode> confidentialityCodes) {
         this.id = Objects.requireNonNull(id);
         this.description = description;
         this.policies = EnumSet.copyOf(Objects.requireNonNull(policies));
         this.actions = EnumSet.copyOf(Objects.requireNonNull(actions));
+        this.confidentialityCodes = Optional.ofNullable(confidentialityCodes)
+                .map(EnumSet::copyOf)
+                .orElse(null);
     }
 
     /**
@@ -109,6 +122,11 @@ public abstract class ChChildPolicySet {
 
     public Set<@NonNull ChAction> getActions() {
         return actions;
+    }
+
+    @Nullable
+    public Set<ConfidentialityCode> getConfidentialityCodes() {
+        return confidentialityCodes;
     }
 
     /**

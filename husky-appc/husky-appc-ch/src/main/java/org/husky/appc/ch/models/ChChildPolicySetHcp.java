@@ -18,6 +18,7 @@ import org.husky.appc.ch.ChAppcUrns;
 import org.husky.appc.ch.enums.ChAccessLevelPolicy;
 import org.husky.appc.ch.enums.ChAction;
 import org.husky.appc.models.*;
+import org.husky.common.ch.enums.ConfidentialityCode;
 import org.husky.common.utils.datatypes.Gln;
 
 import java.util.List;
@@ -42,12 +43,15 @@ public class ChChildPolicySetHcp extends ChChildPolicySet {
      *
      * @param policies    The set of contained policies.
      * @param actions     The set of action.
+     * @param confidentialityCodes The confidentiality codes of the retrieved documents if applicable (disjunctive
+     *                             sequence) or {@code null}.
      * @param hcpGln      The healthcare professional GLN number.
      */
     public ChChildPolicySetHcp(final Set<@NonNull ChAccessLevelPolicy> policies,
                                final Set<@NonNull ChAction> actions,
+                               @Nullable final Set<@NonNull ConfidentialityCode> confidentialityCodes,
                                final String hcpGln) {
-        this(UUID.randomUUID().toString(), null, policies, actions, hcpGln);
+        this(UUID.randomUUID().toString(), null, policies, actions, confidentialityCodes, hcpGln);
     }
 
     /**
@@ -57,14 +61,17 @@ public class ChChildPolicySetHcp extends ChChildPolicySet {
      * @param description The description.
      * @param policies    The set of contained policies.
      * @param actions     The set of action.
+     * @param confidentialityCodes The confidentiality codes of the retrieved documents if applicable (disjunctive
+     *                             sequence) or {@code null}.
      * @param hcpGln      The healthcare professional GLN number.
      */
     public ChChildPolicySetHcp(final String id,
                                @Nullable final String description,
                                final Set<@NonNull ChAccessLevelPolicy> policies,
                                final Set<@NonNull ChAction> actions,
+                               @Nullable final Set<@NonNull ConfidentialityCode> confidentialityCodes,
                                final String hcpGln) {
-        super(id, description, policies, actions);
+        super(id, description, policies, actions, confidentialityCodes);
         if (!Gln.match(Objects.requireNonNull(hcpGln))) {
             throw new IllegalArgumentException("The healthcare professional GLN is invalid");
         }
