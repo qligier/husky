@@ -11,6 +11,7 @@
 package org.husky.appc.ch.xml;
 
 import org.husky.appc.ch.models.*;
+import org.husky.common.ch.enums.ConfidentialityCode;
 import org.junit.jupiter.api.Test;
 
 import javax.xml.bind.JAXBException;
@@ -39,13 +40,15 @@ class ChAppcTest {
                 List.of(
                         new ChChildPolicySetEmergency(
                                 "urn:uuid:29e64cce-19f6-43c4-9cc9-0227cb361ba1",
-                                "description emergency"
+                                "description emergency",
+                                true
                         ),
                         new ChChildPolicySetHcp(
                                 "urn:uuid:46a1a4c0-ed1e-439b-8da8-a523b10ce2b5",
                                 "description hcp",
                                 Set.of(PERMIT_READING_SECRET, PERMIT_WRITING_SECRET),
                                 Set.of(ADD_POLICY, POLICY_QUERY),
+                                ConfidentialityCode.NORMALLY_ACCESSIBLE,
                                 "7601002860123"
                         ),
                         new ChChildPolicySetGroup(
@@ -53,6 +56,7 @@ class ChAppcTest {
                                 "description group",
                                 Set.of(PERMIT_READING_NORMAL),
                                 Set.of(RETRIEVE_DOCUMENT_SET),
+                                ConfidentialityCode.SECRET,
                                 "1.2.3",
                                 LocalDate.of(2032, 1, 1)
                         ),
@@ -61,6 +65,7 @@ class ChAppcTest {
                                 "description representative",
                                 Set.of(PERMIT_READING_NORMAL),
                                 Set.of(RETRIEVE_ATNA_AUDIT),
+                                null,
                                 "1.2.3.4"
                         )
                 )
@@ -81,6 +86,7 @@ class ChAppcTest {
         assertInstanceOf(ChChildPolicySetEmergency.class, childPolicySet);
         assertEquals("urn:uuid:29e64cce-19f6-43c4-9cc9-0227cb361ba1", childPolicySet.getId());
         assertEquals("description emergency", childPolicySet.getDescription());
+        assertEquals(ConfidentialityCode.RESTRICTED_ACCESSIBLE, childPolicySet.getConfidentialityCode());
         assertEquals(1, childPolicySet.getPolicies().size());
 
         childPolicySet = policySet.getPolicySets().get(1);
@@ -92,6 +98,7 @@ class ChAppcTest {
         assertEquals(2, childPolicySet.getPolicies().size());
         assertEquals(Set.of(PERMIT_READING_SECRET, PERMIT_WRITING_SECRET), childPolicySet.getPolicies());
         assertEquals(Set.of(ADD_POLICY, POLICY_QUERY), childPolicySet.getActions());
+        assertEquals(ConfidentialityCode.NORMALLY_ACCESSIBLE, childPolicySet.getConfidentialityCode());
 
         childPolicySet = policySet.getPolicySets().get(2);
         assertInstanceOf(ChChildPolicySetGroup.class, childPolicySet);
@@ -104,6 +111,7 @@ class ChAppcTest {
         assertEquals(1, childPolicySet.getPolicies().size());
         assertEquals(Set.of(PERMIT_READING_NORMAL), childPolicySet.getPolicies());
         assertEquals(Set.of(RETRIEVE_DOCUMENT_SET), childPolicySet.getActions());
+        assertEquals(ConfidentialityCode.SECRET, childPolicySet.getConfidentialityCode());
 
         childPolicySet = policySet.getPolicySets().get(3);
         assertInstanceOf(ChChildPolicySetRepresentative.class, childPolicySet);
@@ -114,5 +122,6 @@ class ChAppcTest {
         assertEquals(1, childPolicySet.getPolicies().size());
         assertEquals(Set.of(PERMIT_READING_NORMAL), childPolicySet.getPolicies());
         assertEquals(Set.of(RETRIEVE_ATNA_AUDIT), childPolicySet.getActions());
+        assertNull(childPolicySet.getConfidentialityCode());
     }
 }

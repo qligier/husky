@@ -10,6 +10,7 @@
 package org.husky.appc.models;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
+import org.husky.common.enums.ValueSetEnumInterface;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -61,10 +62,24 @@ public class CV {
     public CV() {
     }
 
-    public CV(@NonNull final String code,
-              @NonNull final String codeSystem) {
-        this.code = Objects.requireNonNull(code);
-        this.codeSystem = Objects.requireNonNull(codeSystem);
+    public CV(final String code,
+              final String codeSystem) {
+        this.code = code;
+        this.codeSystem = codeSystem;
+    }
+
+    public CV(final String code,
+              final String codeSystem,
+              final String displayName) {
+        this.code = code;
+        this.codeSystem = codeSystem;
+        this.displayName = displayName;
+    }
+
+    public CV(@NonNull final ValueSetEnumInterface valueSetEnum) {
+        this.code = Objects.requireNonNull(valueSetEnum).getCodeValue();
+        this.codeSystem = valueSetEnum.getCodeSystemId();
+        this.displayName = valueSetEnum.getDisplayName();
     }
 
     /**

@@ -19,6 +19,7 @@ import org.husky.appc.ch.enums.ChAccessLevelPolicy;
 import org.husky.appc.ch.enums.ChAction;
 import org.husky.appc.models.*;
 import org.husky.common.ch.enums.ConfidentialityCode;
+import org.husky.communication.ch.enums.Role;
 
 import java.util.List;
 import java.util.Objects;
@@ -40,37 +41,35 @@ public class ChChildPolicySetRepresentative extends ChChildPolicySet {
     /**
      * Simple constructor. A random Id is assigned.
      *
-     * @param policies         The set of contained policies.
-     * @param actions          The set of action.
-     * @param confidentialityCodes The confidentiality codes of the retrieved documents if applicable (disjunctive
-     *                             sequence) or {@code null}.
-     * @param representativeId The representative Id.
+     * @param policies            The set of contained policies.
+     * @param actions             The set of action.
+     * @param confidentialityCode The confidentiality code of the documents if applicable or {@code null}.
+     * @param representativeId    The representative Id.
      */
     public ChChildPolicySetRepresentative(final Set<@NonNull ChAccessLevelPolicy> policies,
                                           final Set<@NonNull ChAction> actions,
-                                          @Nullable final Set<@NonNull ConfidentialityCode> confidentialityCodes,
+                                          @Nullable final ConfidentialityCode confidentialityCode,
                                           final String representativeId) {
-        this(UUID.randomUUID().toString(), null, policies, actions, confidentialityCodes, representativeId);
+        this(UUID.randomUUID().toString(), null, policies, actions, confidentialityCode, representativeId);
     }
 
     /**
      * Full constructor.
      *
-     * @param id               The policy set identifier.
-     * @param description      The description.
-     * @param policies         The set of contained policies.
-     * @param actions          The set of action.
-     * @param confidentialityCodes The confidentiality codes of the retrieved documents if applicable (disjunctive
-     *                             sequence) or {@code null}.
-     * @param representativeId The representative Id.
+     * @param id                  The policy set identifier.
+     * @param description         The description.
+     * @param policies            The set of contained policies.
+     * @param actions             The set of action.
+     * @param confidentialityCode The confidentiality code of the documents if applicable or {@code null}.
+     * @param representativeId    The representative Id.
      */
     public ChChildPolicySetRepresentative(final String id,
                                           @Nullable final String description,
                                           final Set<@NonNull ChAccessLevelPolicy> policies,
                                           final Set<@NonNull ChAction> actions,
-                                          @Nullable final Set<@NonNull ConfidentialityCode> confidentialityCodes,
+                                          @Nullable final ConfidentialityCode confidentialityCode,
                                           final String representativeId) {
-        super(id, description, policies, actions, confidentialityCodes);
+        super(id, description, policies, actions, confidentialityCode);
         this.representativeId = Objects.requireNonNull(representativeId);
     }
 
@@ -97,7 +96,7 @@ public class ChChildPolicySetRepresentative extends ChChildPolicySet {
                 AppcUrns.FUNCTION_STRING_EQUAL
         );
         final var subjectMatch3 = new SubjectMatchType(
-                new AttributeValueType(new CV("REP", "2.16.756.5.30.1.127.3.10.6")),
+                new AttributeValueType(new CV(Role.REPRESENTATIVE)),
                 new SubjectAttributeDesignatorType(AppcUrns.OASIS_SUBJECT_ROLE, AppcUrns.CV),
                 AppcUrns.FUNCTION_CV_EQUAL
         );
@@ -105,16 +104,18 @@ public class ChChildPolicySetRepresentative extends ChChildPolicySet {
         final var target = new TargetType(new SubjectsType(new SubjectType(List.of(subjectMatch1, subjectMatch2,
                 subjectMatch3))));
         target.setActions(this.createPolicySetActions());
+        target.setResources(this.createPolicySetResources());
         return target;
     }
 
     @Override
     public String toString() {
         return "ChChildPolicySetRepresentative{" +
-                "id='" + this.id + '\'' +
-                ", description='" + this.description + '\'' +
-                ", policies=" + this.policies +
+                "policies=" + this.policies +
                 ", actions=" + this.actions +
+                ", confidentialityCode=" + this.confidentialityCode +
+                ", id='" + this.id + '\'' +
+                ", description='" + this.description + '\'' +
                 ", representativeId='" + this.representativeId + '\'' +
                 '}';
     }

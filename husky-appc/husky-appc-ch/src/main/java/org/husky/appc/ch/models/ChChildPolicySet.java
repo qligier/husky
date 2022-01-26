@@ -17,7 +17,9 @@ import org.husky.appc.ch.enums.ChAction;
 import org.husky.appc.models.*;
 import org.husky.common.ch.enums.ConfidentialityCode;
 
-import java.util.*;
+import java.util.EnumSet;
+import java.util.Objects;
+import java.util.Set;
 
 /**
  * The model of an abstract Swiss target.
@@ -27,10 +29,27 @@ import java.util.*;
 public abstract class ChChildPolicySet {
 
     /**
+     * The set of contained policies (conjunctive sequence).
+     */
+    protected final Set<@NonNull ChAccessLevelPolicy> policies;
+    
+    /**
+     * The set of actions (disjunctive sequence).
+     */
+    protected final Set<@NonNull ChAction> actions;
+    
+    /**
+     * The confidentiality code of the documents if applicable or {@code null}. It represents the stricter level of 
+     * confidentiality (i.e. {@code secret} also implies {@code restricted} and {@code normal}).
+     */
+    @Nullable
+    protected final ConfidentialityCode confidentialityCode;
+    
+    /**
      * The policy set identifier.
      */
     protected String id;
-
+    
     /**
      * The description.
      */
@@ -38,43 +57,23 @@ public abstract class ChChildPolicySet {
     protected String description;
 
     /**
-     * The set of contained policies (conjunctive sequence).
-     */
-    protected final Set<@NonNull ChAccessLevelPolicy> policies;
-
-    /**
-     * The set of actions (disjunctive sequence).
-     */
-    protected final Set<@NonNull ChAction> actions;
-
-    /**
-     * The confidentiality codes of the retrieved documents if applicable (disjunctive sequence) or {@code null}.
-     */
-    @Nullable
-    protected final Set<@NonNull ConfidentialityCode> confidentialityCodes;
-
-    /**
      * Constructor.
      *
-     * @param id                   The policy set identifier.
-     * @param description          The description.
-     * @param policies             The set of contained policies.
-     * @param actions              The set of action (disjunctive sequence).
-     * @param confidentialityCodes The confidentiality codes of the retrieved documents if applicable (disjunctive
-     *                             sequence) or {@code null}.
+     * @param description         The description.
+     * @param policies            The set of contained policies.
+     * @param actions             The set of action (disjunctive sequence).
+     * @param confidentialityCode The confidentiality code of the documents if applicable or {@code null}.
      */
     protected ChChildPolicySet(final String id,
                                @Nullable final String description,
                                final Set<@NonNull ChAccessLevelPolicy> policies,
                                final Set<@NonNull ChAction> actions,
-                               @Nullable final Set<@NonNull ConfidentialityCode> confidentialityCodes) {
+                               @Nullable final ConfidentialityCode confidentialityCode) {
         this.id = Objects.requireNonNull(id);
         this.description = description;
         this.policies = EnumSet.copyOf(Objects.requireNonNull(policies));
         this.actions = EnumSet.copyOf(Objects.requireNonNull(actions));
-        this.confidentialityCodes = Optional.ofNullable(confidentialityCodes)
-                .map(EnumSet::copyOf)
-                .orElse(null);
+        this.confidentialityCode = confidentialityCode;
     }
 
     /**
@@ -125,8 +124,8 @@ public abstract class ChChildPolicySet {
     }
 
     @Nullable
-    public Set<ConfidentialityCode> getConfidentialityCodes() {
-        return confidentialityCodes;
+    public ConfidentialityCode getConfidentialityCode() {
+        return confidentialityCode;
     }
 
     /**
@@ -151,5 +150,22 @@ public abstract class ChChildPolicySet {
             )));
         }
         return policySetActions;
+    }
+
+    /**
+     * Creates the policy set resources.
+     *
+     * @return the created {@link ResourcesType} or {@code null}.
+     */
+    @Nullable
+    protected ResourcesType createPolicySetResources() {
+        if (this.confidentialityCode == null) {
+            return null;
+        }
+        return new ResourcesType(new ResourceType(new ResourceMatchType(
+                new AttributeValueType(new CV(this.confidentialityCode)),
+                new AttributeDesignatorType(AppcUrns.IHE_CONFIDENTIALITY_CODE, AppcUrns.CV),
+                AppcUrns.FUNCTION_CV_EQUAL
+        )));
     }
 }

@@ -123,6 +123,17 @@ public class AttributeValueType {
                 .findAny();
     }
 
+    @NonNull
+    public Optional<CV> getCvContent() {
+        return this.getContent().stream()
+                .filter(JAXBElement.class::isInstance)
+                .map(JAXBElement.class::cast)
+                .map(JAXBElement::getValue)
+                .filter(CV.class::isInstance)
+                .map(CV.class::cast)
+                .findAny();
+    }
+
     /**
      * Gets the value of the dataType property.
      *

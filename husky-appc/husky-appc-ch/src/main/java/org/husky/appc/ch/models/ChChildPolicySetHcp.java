@@ -20,6 +20,7 @@ import org.husky.appc.ch.enums.ChAction;
 import org.husky.appc.models.*;
 import org.husky.common.ch.enums.ConfidentialityCode;
 import org.husky.common.utils.datatypes.Gln;
+import org.husky.communication.ch.enums.Role;
 
 import java.util.List;
 import java.util.Objects;
@@ -41,37 +42,35 @@ public class ChChildPolicySetHcp extends ChChildPolicySet {
     /**
      * Simple constructor. A random Id is assigned.
      *
-     * @param policies    The set of contained policies.
-     * @param actions     The set of action.
-     * @param confidentialityCodes The confidentiality codes of the retrieved documents if applicable (disjunctive
-     *                             sequence) or {@code null}.
-     * @param hcpGln      The healthcare professional GLN number.
+     * @param policies            The set of contained policies.
+     * @param actions             The set of action.
+     * @param confidentialityCode The confidentiality code of the documents if applicable or {@code null}.
+     * @param hcpGln              The healthcare professional GLN number.
      */
     public ChChildPolicySetHcp(final Set<@NonNull ChAccessLevelPolicy> policies,
                                final Set<@NonNull ChAction> actions,
-                               @Nullable final Set<@NonNull ConfidentialityCode> confidentialityCodes,
+                               @Nullable final ConfidentialityCode confidentialityCode,
                                final String hcpGln) {
-        this(UUID.randomUUID().toString(), null, policies, actions, confidentialityCodes, hcpGln);
+        this(UUID.randomUUID().toString(), null, policies, actions, confidentialityCode, hcpGln);
     }
 
     /**
      * Full constructor.
      *
-     * @param id          The policy set identifier.
-     * @param description The description.
-     * @param policies    The set of contained policies.
-     * @param actions     The set of action.
-     * @param confidentialityCodes The confidentiality codes of the retrieved documents if applicable (disjunctive
-     *                             sequence) or {@code null}.
-     * @param hcpGln      The healthcare professional GLN number.
+     * @param id                  The policy set identifier.
+     * @param description         The description.
+     * @param policies            The set of contained policies.
+     * @param actions             The set of action.
+     * @param confidentialityCode The confidentiality code of the documents if applicable or {@code null}.
+     * @param hcpGln              The healthcare professional GLN number.
      */
     public ChChildPolicySetHcp(final String id,
                                @Nullable final String description,
                                final Set<@NonNull ChAccessLevelPolicy> policies,
                                final Set<@NonNull ChAction> actions,
-                               @Nullable final Set<@NonNull ConfidentialityCode> confidentialityCodes,
+                               @Nullable final ConfidentialityCode confidentialityCode,
                                final String hcpGln) {
-        super(id, description, policies, actions, confidentialityCodes);
+        super(id, description, policies, actions, confidentialityCode);
         if (!Gln.match(Objects.requireNonNull(hcpGln))) {
             throw new IllegalArgumentException("The healthcare professional GLN is invalid");
         }
@@ -104,7 +103,7 @@ public class ChChildPolicySetHcp extends ChChildPolicySet {
                 AppcUrns.FUNCTION_STRING_EQUAL
         );
         final var subjectMatch3 = new SubjectMatchType(
-                new AttributeValueType(new CV("HCP", "2.16.756.5.30.1.127.3.10.6")),
+                new AttributeValueType(new CV(Role.HEALTHCARE_PROFESSIONAL)),
                 new SubjectAttributeDesignatorType(AppcUrns.OASIS_SUBJECT_ROLE, AppcUrns.CV),
                 AppcUrns.FUNCTION_CV_EQUAL
         );
@@ -112,16 +111,18 @@ public class ChChildPolicySetHcp extends ChChildPolicySet {
         final var target = new TargetType(new SubjectsType(new SubjectType(List.of(subjectMatch1, subjectMatch2,
                 subjectMatch3))));
         target.setActions(this.createPolicySetActions());
+        target.setResources(this.createPolicySetResources());
         return target;
     }
 
     @Override
     public String toString() {
         return "ChChildPolicySetHcp{" +
-                "id='" + this.id + '\'' +
-                ", description='" + this.description + '\'' +
-                ", policies=" + this.policies +
+                "policies=" + this.policies +
                 ", actions=" + this.actions +
+                ", confidentialityCode=" + this.confidentialityCode +
+                ", id='" + this.id + '\'' +
+                ", description='" + this.description + '\'' +
                 ", hcpGln='" + this.hcpGln + '\'' +
                 '}';
     }

@@ -16,6 +16,9 @@ import org.husky.appc.AppcUrns;
 import org.husky.appc.ch.enums.ChAccessLevelPolicy;
 import org.husky.appc.ch.enums.ChAction;
 import org.husky.appc.models.*;
+import org.husky.common.ch.enums.ConfidentialityCode;
+import org.husky.communication.ch.enums.PurposeOfUse;
+import org.husky.communication.ch.enums.Role;
 
 import java.util.EnumSet;
 import java.util.List;
@@ -46,21 +49,27 @@ public class ChChildPolicySetEmergency extends ChChildPolicySet {
 
     /**
      * Simple constructor. A random Id is assigned.
+     *
+     * @param allowRestricted Whether to allow restricted access or not. If {@code false}, the confidentiality code is
+     *                        set to {@code normal}.
      */
-    public ChChildPolicySetEmergency() {
-        this(UUID.randomUUID().toString(), null);
+    public ChChildPolicySetEmergency(final boolean allowRestricted) {
+        this(UUID.randomUUID().toString(), null, allowRestricted);
     }
 
     /**
      * Full constructor.
      *
-     * @param id          The policy set identifier.
-     * @param description The description.
+     * @param id              The policy set identifier.
+     * @param description     The description.
+     * @param allowRestricted Whether to allow restricted access or not. If {@code false}, the confidentiality code is
+     *                        set to {@code normal}.
      */
     public ChChildPolicySetEmergency(final String id,
-                               @Nullable final String description) {
-        super(id, description, POLICIES, ACTIONS, null);
-        // TODO: confidentiality codes
+                                     @Nullable final String description,
+                                     final boolean allowRestricted) {
+        super(id, description, POLICIES, ACTIONS,
+                allowRestricted ? ConfidentialityCode.RESTRICTED_ACCESSIBLE : ConfidentialityCode.NORMALLY_ACCESSIBLE);
     }
 
     /**
@@ -68,28 +77,30 @@ public class ChChildPolicySetEmergency extends ChChildPolicySet {
      */
     protected TargetType createPolicySetTarget() {
         final var subjectMatch1 = new SubjectMatchType(
-                new AttributeValueType(new CV("HCP", "2.16.756.5.30.1.127.3.10.6")),
+                new AttributeValueType(new CV(Role.HEALTHCARE_PROFESSIONAL)),
                 new SubjectAttributeDesignatorType(AppcUrns.OASIS_SUBJECT_ROLE, AppcUrns.CV),
                 AppcUrns.FUNCTION_CV_EQUAL
         );
         final var subjectMatch2 = new SubjectMatchType(
-                new AttributeValueType(new CV("EMER", "2.16.756.5.30.1.127.3.10.5")),
+                new AttributeValueType(new CV(PurposeOfUse.EMERGENCY_ACCESS)),
                 new SubjectAttributeDesignatorType(AppcUrns.OASIS_SUBJECT_PURPOSE_USE, AppcUrns.CV),
                 AppcUrns.FUNCTION_CV_EQUAL
         );
         // Conjunctive sequence of subject matches
         final var target = new TargetType(new SubjectsType(new SubjectType(List.of(subjectMatch1, subjectMatch2))));
         target.setActions(this.createPolicySetActions());
+        target.setResources(this.createPolicySetResources());
         return target;
     }
 
     @Override
     public String toString() {
         return "ChChildPolicySetEmergency{" +
-                "id='" + this.id + '\'' +
-                ", description='" + this.description + '\'' +
-                ", policies=" + this.policies +
+                "policies=" + this.policies +
                 ", actions=" + this.actions +
+                ", confidentialityCode=" + this.confidentialityCode +
+                ", id='" + this.id + '\'' +
+                ", description='" + this.description + '\'' +
                 '}';
     }
 }

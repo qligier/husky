@@ -19,6 +19,7 @@ import org.husky.appc.ch.errors.InvalidSwissAppcContentException;
 import org.husky.appc.ch.models.*;
 import org.husky.appc.models.*;
 import org.husky.appc.xml.AppcUnmarshaller;
+import org.husky.common.ch.enums.ConfidentialityCode;
 import org.husky.common.utils.OptionalUtils;
 import org.xml.sax.InputSource;
 
@@ -156,6 +157,19 @@ public class ChAppcUnmarshaller {
                 .map(Optional::get)
                 .map(ChAction::getByUrn)
                 .collect(Collectors.toUnmodifiableSet());
+        final ConfidentialityCode confidentialityCode = Optional.ofNullable(policySet.getTarget())
+                .map(TargetType::getResources)
+                .map(ResourcesType::getResource)
+                .map(OptionalUtils::getListOnlyElement)
+                .map(ResourceType::getResourceMatch)
+                .map(OptionalUtils::getListOnlyElement)
+                .filter(actionMatch -> actionMatch.getResourceAttributeDesignator() != null)
+                .filter(actionMatch -> AppcUrns.IHE_CONFIDENTIALITY_CODE.equals(actionMatch.getResourceAttributeDesignator().getAttributeId()))
+                .map(ResourceMatchType::getAttributeValue)
+                .flatMap(AttributeValueType::getCvContent)
+                .map(CV::getCode)
+                .map(ConfidentialityCode::getEnum)
+                .orElse(null);
 
         final BiFunction<List<SubjectMatchType>, String, String> extractValue =
                 (subjectMatches, attributeId) -> subjectMatches.stream()
@@ -171,16 +185,8 @@ public class ChAppcUnmarshaller {
                         .filter(subjectMatch -> attributeId.equals(subjectMatch.getSubjectAttributeDesignator().getAttributeId()))
                         .findAny()
                         .map(SubjectMatchType::getAttributeValue)
-                        .map(AttributeValueType::getContent)
-                        .orElseGet(Collections::emptyList)
-                        .stream()
-                        .filter(JAXBElement.class::isInstance)
-                        .map(JAXBElement.class::cast)
-                        .map(JAXBElement::getValue)
-                        .filter(CV.class::isInstance)
-                        .map(CV.class::cast)
+                        .flatMap(AttributeValueType::getCvContent)
                         .map(CV::getCode)
-                        .findAny()
                         .orElse(null);
 
         final List<SubjectMatchType> subjectMatches = Optional.ofNullable(policySet.getTarget())
@@ -210,14 +216,17 @@ public class ChAppcUnmarshaller {
                 .orElse(null);
 
         if ("REP".equals(role) && subjectId != null) {
-            return new ChChildPolicySetRepresentative(id, description, policies, actions, subjectId);
+            return new ChChildPolicySetRepresentative(id, description, policies, actions, confidentialityCode,
+                    subjectId);
         } else if ("HCP".equals(role) && subjectId != null && !"EMER".equals(purposeOfUse)) {
-            return new ChChildPolicySetHcp(id, description, policies, actions, subjectId);
+            return new ChChildPolicySetHcp(id, description, policies, actions, confidentialityCode, subjectId);
         } else if (organizationId != null && endDate != null) {
-            return new ChChildPolicySetGroup(id, description, policies, actions, organizationId, endDate);
+            return new ChChildPolicySetGroup(id, description, policies, actions, confidentialityCode, organizationId,
+                    endDate);
         } else if ("EMER".equals(purposeOfUse) && "HCP".equals(role) && ChChildPolicySetEmergency.POLICIES.equals(policies)
-                && ChChildPolicySetEmergency.ACTIONS.equals(actions)) {
-            return new ChChildPolicySetEmergency(id, description);
+                && ChChildPolicySetEmergency.ACTIONS.equals(actions) && confidentialityCode != ConfidentialityCode.SECRET) {
+            return new ChChildPolicySetEmergency(id, description,
+                    confidentialityCode == ConfidentialityCode.RESTRICTED_ACCESSIBLE);
         }
         throw new InvalidSwissAppcContentException("The PolicySet is unparsable");
     }

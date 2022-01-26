@@ -18,6 +18,7 @@ import org.husky.appc.ch.enums.ChAccessLevelPolicy;
 import org.husky.appc.ch.enums.ChAction;
 import org.husky.appc.models.*;
 import org.husky.common.ch.enums.ConfidentialityCode;
+import org.husky.communication.ch.enums.Role;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -45,41 +46,39 @@ public class ChChildPolicySetGroup extends ChChildPolicySet {
     /**
      * Simple constructor. A random Id is assigned.
      *
-     * @param policies        The set of contained policies.
-     * @param actions         The set of action.
-     * @param confidentialityCodes The confidentiality codes of the retrieved documents if applicable (disjunctive
-     *                             sequence) or {@code null}.
-     * @param groupOid        The group OID number.
-     * @param validityEndDate The inclusive end date until which the group is selected.
+     * @param policies            The set of contained policies.
+     * @param actions             The set of action.
+     * @param confidentialityCode The confidentiality code of the documents if applicable or {@code null}.
+     * @param groupOid            The group OID number.
+     * @param validityEndDate     The inclusive end date until which the group is selected.
      */
     public ChChildPolicySetGroup(final Set<@NonNull ChAccessLevelPolicy> policies,
                                  final Set<@NonNull ChAction> actions,
-                                 @Nullable final Set<@NonNull ConfidentialityCode> confidentialityCodes,
+                                 @Nullable final ConfidentialityCode confidentialityCode,
                                  final String groupOid,
                                  final LocalDate validityEndDate) {
-        this(UUID.randomUUID().toString(), null, policies, actions, confidentialityCodes, groupOid, validityEndDate);
+        this(UUID.randomUUID().toString(), null, policies, actions, confidentialityCode, groupOid, validityEndDate);
     }
 
     /**
      * Full constructor.
      *
-     * @param id              The policy set identifier.
-     * @param description     The description.
-     * @param policies        The set of contained policies.
-     * @param actions         The set of action.
-     * @param confidentialityCodes The confidentiality codes of the retrieved documents if applicable (disjunctive
-     *                             sequence) or {@code null}.
-     * @param groupOid        The group OID number.
-     * @param validityEndDate The inclusive end date until which the group is selected.
+     * @param id                  The policy set identifier.
+     * @param description         The description.
+     * @param policies            The set of contained policies.
+     * @param actions             The set of action.
+     * @param confidentialityCode The confidentiality code of the documents if applicable or {@code null}.
+     * @param groupOid            The group OID number.
+     * @param validityEndDate     The inclusive end date until which the group is selected.
      */
     public ChChildPolicySetGroup(final String id,
                                  @Nullable final String description,
                                  final Set<@NonNull ChAccessLevelPolicy> policies,
                                  final Set<@NonNull ChAction> actions,
-                                 @Nullable final Set<@NonNull ConfidentialityCode> confidentialityCodes,
+                                 @Nullable final ConfidentialityCode confidentialityCode,
                                  final String groupOid,
                                  final LocalDate validityEndDate) {
-        super(id, description, policies, actions, confidentialityCodes);
+        super(id, description, policies, actions, confidentialityCode);
         this.setGroupOid(groupOid);
         this.validityEndDate = Objects.requireNonNull(validityEndDate);
     }
@@ -111,7 +110,7 @@ public class ChChildPolicySetGroup extends ChChildPolicySet {
                 AppcUrns.FUNCTION_ANY_URI_EQUAL
         );
         final var subjectMatch2 = new SubjectMatchType(
-                new AttributeValueType(new CV("HCP", "2.16.756.5.30.1.127.3.10.6")),
+                new AttributeValueType(new CV(Role.HEALTHCARE_PROFESSIONAL)),
                 new SubjectAttributeDesignatorType(AppcUrns.OASIS_SUBJECT_ROLE, AppcUrns.CV),
                 AppcUrns.FUNCTION_CV_EQUAL
         );
@@ -123,16 +122,18 @@ public class ChChildPolicySetGroup extends ChChildPolicySet {
                 AppcUrns.FUNCTION_DATE_GT_EQ
         ))));
         target.setActions(this.createPolicySetActions());
+        target.setResources(this.createPolicySetResources());
         return target;
     }
 
     @Override
     public String toString() {
         return "ChChildPolicySetGroup{" +
-                "id='" + this.id + '\'' +
-                ", description='" + this.description + '\'' +
-                ", policies=" + this.policies +
+                "policies=" + this.policies +
                 ", actions=" + this.actions +
+                ", confidentialityCode=" + this.confidentialityCode +
+                ", id='" + this.id + '\'' +
+                ", description='" + this.description + '\'' +
                 ", groupOid='" + this.groupOid + '\'' +
                 ", validityEndDate=" + this.validityEndDate +
                 '}';

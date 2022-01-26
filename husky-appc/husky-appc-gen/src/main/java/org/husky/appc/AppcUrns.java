@@ -56,4 +56,9 @@ public class AppcUrns {
     public static final String FUNCTION_DATE_GT_EQ = "urn:oasis:names:tc:xacml:1.0:function:date-greater-than-or-equal";
     public static final String II = "urn:hl7-org:v3#II";
     public static final String CV = "urn:hl7-org:v3#CV";
+
+    /**
+     * URNs defined by IHE.
+     */
+    public static final String IHE_CONFIDENTIALITY_CODE = "urn:ihe:iti:xds-b:2007:confidentiality-code";
 }
