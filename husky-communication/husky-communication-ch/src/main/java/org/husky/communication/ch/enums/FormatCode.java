@@ -276,7 +276,7 @@ public enum FormatCode implements ValueSetEnumInterface {
             "a",
             "a"),
     ADVANCED_PATIENT_PRIVACY_CONSENTS("urn:ihe:iti:appc:2016:consent",
-            "2.16.756.5.30.1.127.3.10.10",
+            "1.3.6.1.4.1.19376.1.2.3",
             "a",
             "a",
             "a",
