@@ -84,10 +84,10 @@ public class ChPolicySet {
                 .toList();
     }
 
-    public List<ChChildPolicySetHcp> getHcpPolicySets() {
+    public List<ChChildPolicySetHealthcareProfessional> getHcpPolicySets() {
         return this.policySets.stream()
-                .filter(ChChildPolicySetHcp.class::isInstance)
-                .map(ChChildPolicySetHcp.class::cast)
+                .filter(ChChildPolicySetHealthcareProfessional.class::isInstance)
+                .map(ChChildPolicySetHealthcareProfessional.class::cast)
                 .toList();
     }
 

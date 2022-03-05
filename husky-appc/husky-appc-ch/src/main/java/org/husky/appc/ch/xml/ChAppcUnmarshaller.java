@@ -13,13 +13,10 @@ package org.husky.appc.ch.xml;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.husky.appc.AppcUrns;
-import org.husky.appc.ch.enums.ChAccessLevelPolicy;
-import org.husky.appc.ch.enums.ChAction;
 import org.husky.appc.ch.errors.InvalidSwissAppcContentException;
 import org.husky.appc.ch.models.*;
 import org.husky.appc.models.*;
 import org.husky.appc.xml.AppcUnmarshaller;
-import org.husky.common.ch.enums.ConfidentialityCode;
 import org.husky.common.utils.OptionalUtils;
 import org.xml.sax.InputSource;
 
@@ -30,7 +27,6 @@ import java.io.InputStream;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.function.BiFunction;
-import java.util.stream.Collectors;
 
 import static org.husky.common.enums.CodeSystems.SWISS_EPR_SPID;
 
@@ -93,19 +89,9 @@ public class ChAppcUnmarshaller {
      * @return the mapped Swiss model.
      */
     private static ChPolicySet mapSwissModel(final PolicySetType policySet) {
-        final List<@NonNull ChChildPolicySet> policySets = policySet.getPolicySetOrPolicyOrPolicySetIdReference().stream()
-                .map(JAXBElement::getValue)
-                .map(object -> OptionalUtils.castOrNull(object, PolicySetType.class))
-                .filter(Objects::nonNull)
-                .map(ChAppcUnmarshaller::extractChildPolicySet)
-                .toList();
+        final List<@NonNull ChChildPolicySet> policySets = policySet.getPolicySetOrPolicyOrPolicySetIdReference().stream().map(JAXBElement::getValue).map(object -> OptionalUtils.castOrNull(object, PolicySetType.class)).filter(Objects::nonNull).map(ChAppcUnmarshaller::extractChildPolicySet).toList();
 
-        return new ChPolicySet(
-                policySet.getPolicySetId(),
-                policySet.getDescription(),
-                extractPatientEprSpid(policySet),
-                policySets
-        );
+        return new ChPolicySet(Objects.requireNonNull(policySet.getPolicySetId(), "The PolicySet Id is required"), Objects.requireNonNull(policySet.getDescription(), "The root PolicySet description is required"), extractPatientEprSpid(policySet), policySets);
     }
 
     /**
@@ -116,69 +102,30 @@ public class ChAppcUnmarshaller {
      * @throws InvalidSwissAppcContentException if the patient EPR-SPID is not found.
      */
     private static String extractPatientEprSpid(final PolicySetType policySet) throws InvalidSwissAppcContentException {
-        return Optional.ofNullable(policySet.getTarget())
-                .map(TargetType::getResources)
-                .map(ResourcesType::getResource)
-                .map(OptionalUtils::getListOnlyElement)
-                .map(ResourceType::getResourceMatch)
-                .map(OptionalUtils::getListOnlyElement)
-                .map(ResourceMatchType::getAttributeValue)
-                .flatMap(AttributeValueType::getSingleIi)
-                .filter(ii -> SWISS_EPR_SPID.getCodeSystemId().equals(ii.getRoot()))
-                .map(II::getExtension)
-                .orElseThrow(() -> new InvalidSwissAppcContentException("The patient EPR-SPID has not been found"));
+        return Optional.ofNullable(policySet.getTarget()).map(TargetType::getResources).map(ResourcesType::getResource).map(OptionalUtils::getListOnlyElement).map(ResourceType::getResourceMatch).map(OptionalUtils::getListOnlyElement).map(ResourceMatchType::getAttributeValue).flatMap(AttributeValueType::getSingleIi).filter(ii -> SWISS_EPR_SPID.getCodeSystemId().equals(ii.getRoot())).map(II::getExtension).orElseThrow(() -> new InvalidSwissAppcContentException("The patient EPR-SPID has not been found"));
     }
 
     private static ChChildPolicySet extractChildPolicySet(final PolicySetType policySet) {
         final String id = Optional.ofNullable(policySet.getPolicySetId())
-                        .orElseThrow(() -> new InvalidSwissAppcContentException("The PolicySet has no Id"));
+                .orElseThrow(() -> new InvalidSwissAppcContentException("The PolicySet has no Id"));
         final String description = policySet.getDescription();
-        final Set<ChAccessLevelPolicy> policies = policySet.getPolicySetOrPolicyOrPolicySetIdReference().stream()
-                .map(JAXBElement::getValue)
-                .filter(IdReferenceType.class::isInstance)
-                .map(IdReferenceType.class::cast)
-                .map(IdReferenceType::getValue)
-                .filter(ChAccessLevelPolicy::urnInEnum)
-                .map(ChAccessLevelPolicy::getByUrn)
-                .collect(Collectors.toUnmodifiableSet());
-        final Set<ChAction> actions = Optional.ofNullable(policySet.getTarget())
-                .map(TargetType::getActions)
-                .map(ActionsType::getAction)
-                .orElseGet(Collections::emptyList).stream()
-                .map(ActionType::getActionMatch)
-                .map(OptionalUtils::getListOnlyElement)
-                .filter(Objects::nonNull)
-                .filter(actionMatch -> actionMatch.getActionAttributeDesignator() != null)
-                .filter(actionMatch -> AppcUrns.OASIS_ACTION_ID.equals(actionMatch.getActionAttributeDesignator().getAttributeId()))
-                .map(ActionMatchType::getAttributeValue)
-                .filter(Objects::nonNull)
-                .map(AttributeValueType::getStringContent)
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .map(ChAction::getByUrn)
-                .collect(Collectors.toUnmodifiableSet());
-        final ConfidentialityCode confidentialityCode = Optional.ofNullable(policySet.getTarget())
-                .map(TargetType::getResources)
-                .map(ResourcesType::getResource)
-                .map(OptionalUtils::getListOnlyElement)
-                .map(ResourceType::getResourceMatch)
-                .map(OptionalUtils::getListOnlyElement)
-                .filter(actionMatch -> actionMatch.getResourceAttributeDesignator() != null)
-                .filter(actionMatch -> AppcUrns.IHE_CONFIDENTIALITY_CODE.equals(actionMatch.getResourceAttributeDesignator().getAttributeId()))
-                .map(ResourceMatchType::getAttributeValue)
-                .flatMap(AttributeValueType::getCvContent)
-                .map(CV::getCode)
-                .map(ConfidentialityCode::getEnum)
-                .orElse(null);
+        final List<String> policySetIds = policySet.getPolicySetOrPolicyOrPolicySetIdReference().stream()
+                .map(JAXBElement::getValue).filter(IdReferenceType.class::isInstance).map(IdReferenceType.class::cast)
+                // TODO filter only PolicySetId
+                .map(IdReferenceType::getValue).filter(Objects::nonNull).toList();
+        if (policySetIds.size() != 1) {
+            throw new InvalidSwissAppcContentException("The PolicySet hasn't a single PolicySetId reference.");
+        }
+        final String policySetId = policySetIds.get(0);
 
         final BiFunction<List<SubjectMatchType>, String, String> extractValue =
                 (subjectMatches, attributeId) -> subjectMatches.stream()
-                    .filter(subjectMatch -> subjectMatch.getSubjectAttributeDesignator() != null)
-                    .filter(subjectMatch -> attributeId.equals(subjectMatch.getSubjectAttributeDesignator().getAttributeId()))
-                    .findAny()
-                    .map(SubjectMatchType::getAttributeValue)
-                    .flatMap(AttributeValueType::getStringContent)
-                    .orElse(null);
+                        .filter(subjectMatch -> subjectMatch.getSubjectAttributeDesignator() != null)
+                        .filter(subjectMatch -> attributeId.equals(subjectMatch.getSubjectAttributeDesignator().getAttributeId()))
+                        .findAny()
+                        .map(SubjectMatchType::getAttributeValue)
+                        .flatMap(AttributeValueType::getStringContent)
+                        .orElse(null);
         final BiFunction<List<SubjectMatchType>, String, String> extractCv =
                 (subjectMatches, attributeId) -> subjectMatches.stream()
                         .filter(subjectMatch -> subjectMatch.getSubjectAttributeDesignator() != null)
@@ -194,39 +141,40 @@ public class ChAppcUnmarshaller {
                 .map(SubjectsType::getSubject)
                 .map(OptionalUtils::getListOnlyElement)
                 .map(SubjectType::getSubjectMatch)
-                .orElse(Collections.emptyList()).stream()
-                .toList();
+                .orElse(Collections.emptyList())
+                .stream().toList();
         final String subjectId = extractValue.apply(subjectMatches, AppcUrns.OASIS_SUBJECT_ID);
         final String role = extractCv.apply(subjectMatches, AppcUrns.OASIS_SUBJECT_ROLE);
         final String organizationId = extractValue.apply(subjectMatches, AppcUrns.OASIS_SUBJECT_ORG_ID);
         final String purposeOfUse = extractCv.apply(subjectMatches, AppcUrns.OASIS_SUBJECT_PURPOSE_USE);
-        final LocalDate endDate = Optional.ofNullable(policySet.getTarget().getEnvironments()).stream()
-                .map(EnvironmentsType::getEnvironment)
-                .map(OptionalUtils::getListOnlyElement)
-                .filter(Objects::nonNull)
-                .map(EnvironmentType::getEnvironmentMatch)
-                .map(OptionalUtils::getListOnlyElement)
-                .filter(Objects::nonNull)
-                .filter(envMatch -> envMatch.getEnvironmentAttributeDesignator() != null)
-                .filter(envMatch -> AppcUrns.OASIS_ENV_CURRENT_DATE.equals(envMatch.getEnvironmentAttributeDesignator().getAttributeId()))
-                .findAny()
-                .map(EnvironmentMatchType::getAttributeValue)
-                .flatMap(AttributeValueType::getStringContent)
-                .map(LocalDate::parse)
-                .orElse(null);
+
+        final BiFunction<PolicySetType, String, LocalDate> extractDate =
+                (policySet2, matchId) -> Optional.ofNullable(policySet2.getTarget())
+                        .map(TargetType::getEnvironments)
+                        .map(EnvironmentsType::getEnvironment)
+                        .map(OptionalUtils::getListOnlyElement)
+                        .map(EnvironmentType::getEnvironmentMatch)
+                        .stream()
+                        .flatMap(Collection::stream)
+                        .filter(envMatch -> matchId.equals(envMatch.getMatchId()))
+                        .filter(envMatch -> envMatch.getEnvironmentAttributeDesignator() != null && AppcUrns.OASIS_ENV_CURRENT_DATE.equals(envMatch.getEnvironmentAttributeDesignator().getAttributeId()))
+                        .findAny()
+                        .map(EnvironmentMatchType::getAttributeValue)
+                        .flatMap(AttributeValueType::getStringContent)
+                        .map(LocalDate::parse)
+                        .orElse(null);
+
+        final LocalDate startDate = extractDate.apply(policySet, AppcUrns.FUNCTION_DATE_GT_EQ);
+        final LocalDate endDate = extractDate.apply(policySet, AppcUrns.FUNCTION_DATE_LT_EQ);
 
         if ("REP".equals(role) && subjectId != null) {
-            return new ChChildPolicySetRepresentative(id, description, policies, actions, confidentialityCode,
-                    subjectId);
+            return new ChChildPolicySetRepresentative(id, description, policySetId, startDate, endDate, subjectId);
         } else if ("HCP".equals(role) && subjectId != null && !"EMER".equals(purposeOfUse)) {
-            return new ChChildPolicySetHcp(id, description, policies, actions, confidentialityCode, subjectId);
+            return new ChChildPolicySetHealthcareProfessional(id, description, policySetId, startDate, endDate, subjectId);
         } else if (organizationId != null && endDate != null) {
-            return new ChChildPolicySetGroup(id, description, policies, actions, confidentialityCode, organizationId,
-                    endDate);
-        } else if ("EMER".equals(purposeOfUse) && "HCP".equals(role) && ChChildPolicySetEmergency.POLICIES.equals(policies)
-                && ChChildPolicySetEmergency.ACTIONS.equals(actions) && confidentialityCode != ConfidentialityCode.SECRET) {
-            return new ChChildPolicySetEmergency(id, description,
-                    confidentialityCode == ConfidentialityCode.RESTRICTED_ACCESSIBLE);
+            return new ChChildPolicySetGroup(id, description, policySetId, startDate, endDate, organizationId);
+        } else if ("EMER".equals(purposeOfUse) && "HCP".equals(role)) {
+            return new ChChildPolicySetEmergency(id, description, policySetId, startDate, endDate);
         }
         throw new InvalidSwissAppcContentException("The PolicySet is unparsable");
     }

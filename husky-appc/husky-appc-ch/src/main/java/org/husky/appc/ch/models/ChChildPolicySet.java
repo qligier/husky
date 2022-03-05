@@ -9,17 +9,15 @@
  */
 package org.husky.appc.ch.models;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.husky.appc.AppcUrns;
-import org.husky.appc.ch.enums.ChAccessLevelPolicy;
-import org.husky.appc.ch.enums.ChAction;
 import org.husky.appc.models.*;
-import org.husky.common.ch.enums.ConfidentialityCode;
+import org.husky.communication.ch.enums.Role;
 
-import java.util.EnumSet;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 
 /**
  * The model of an abstract Swiss target.
@@ -29,27 +27,10 @@ import java.util.Set;
 public abstract class ChChildPolicySet {
 
     /**
-     * The set of contained policies (conjunctive sequence).
-     */
-    protected final Set<@NonNull ChAccessLevelPolicy> policies;
-    
-    /**
-     * The set of actions (disjunctive sequence).
-     */
-    protected final Set<@NonNull ChAction> actions;
-    
-    /**
-     * The confidentiality code of the documents if applicable or {@code null}. It represents the stricter level of 
-     * confidentiality (i.e. {@code secret} also implies {@code restricted} and {@code normal}).
-     */
-    @Nullable
-    protected final ConfidentialityCode confidentialityCode;
-    
-    /**
      * The policy set identifier.
      */
     protected String id;
-    
+
     /**
      * The description.
      */
@@ -57,24 +38,47 @@ public abstract class ChChildPolicySet {
     protected String description;
 
     /**
+     * The identifier of the referenced policy set.
+     */
+    protected String referencedPolicySetId;
+
+    /**
+     * The inclusive start date after which the policy set is valid.
+     */
+    @Nullable
+    protected LocalDate validityStartDate;
+
+    /**
+     * The inclusive end date until which the policy set is valid.
+     */
+    @Nullable
+    protected LocalDate validityEndDate;
+
+    /**
      * Constructor.
      *
-     * @param description         The description.
-     * @param policies            The set of contained policies.
-     * @param actions             The set of action (disjunctive sequence).
-     * @param confidentialityCode The confidentiality code of the documents if applicable or {@code null}.
+     * @param id                The policy set identifier.
+     * @param description       The description.
+     * @param policySetId       The identifier of the referenced policy set.
+     * @param validityStartDate The inclusive start date after which the policy set is valid.
+     * @param validityEndDate   The inclusive end date until which the policy set is valid.
      */
     protected ChChildPolicySet(final String id,
                                @Nullable final String description,
-                               final Set<@NonNull ChAccessLevelPolicy> policies,
-                               final Set<@NonNull ChAction> actions,
-                               @Nullable final ConfidentialityCode confidentialityCode) {
+                               final String policySetId,
+                               @Nullable final LocalDate validityStartDate,
+                               @Nullable final LocalDate validityEndDate) {
         this.id = Objects.requireNonNull(id);
         this.description = description;
-        this.policies = EnumSet.copyOf(Objects.requireNonNull(policies));
-        this.actions = EnumSet.copyOf(Objects.requireNonNull(actions));
-        this.confidentialityCode = confidentialityCode;
+        this.referencedPolicySetId = Objects.requireNonNull(policySetId);
+        this.validityStartDate = validityStartDate;
+        this.validityEndDate = validityEndDate;
     }
+
+    /**
+     * Returns the targeted role.
+     */
+    public abstract Role getRole();
 
     /**
      * Creates the policy set model.
@@ -89,11 +93,7 @@ public abstract class ChChildPolicySet {
         policySet.setTarget(this.createPolicySetTarget());
 
         final var appcFactory = new ObjectFactory();
-        this.policies.stream()
-                .map(ChAccessLevelPolicy::getUrn)
-                .map(IdReferenceType::new)
-                .map(appcFactory::createPolicyIdReference)
-                .forEach(jaxb -> policySet.getPolicySetOrPolicyOrPolicySetIdReference().add(jaxb));
+        policySet.getPolicySetOrPolicyOrPolicySetIdReference().add(appcFactory.createPolicyIdReference(new IdReferenceType(this.referencedPolicySetId)));
 
         return policySet;
     }
@@ -115,17 +115,30 @@ public abstract class ChChildPolicySet {
         this.description = description;
     }
 
-    public Set<@NonNull ChAccessLevelPolicy> getPolicies() {
-        return policies;
+    public String getReferencedPolicySetId() {
+        return referencedPolicySetId;
     }
 
-    public Set<@NonNull ChAction> getActions() {
-        return actions;
+    public void setReferencedPolicySetId(final String referencedPolicySetId) {
+        this.referencedPolicySetId = Objects.requireNonNull(referencedPolicySetId);
     }
 
     @Nullable
-    public ConfidentialityCode getConfidentialityCode() {
-        return confidentialityCode;
+    public LocalDate getValidityStartDate() {
+        return validityStartDate;
+    }
+
+    public void setValidityStartDate(@Nullable final LocalDate validityStartDate) {
+        this.validityStartDate = validityStartDate;
+    }
+
+    @Nullable
+    public LocalDate getValidityEndDate() {
+        return validityEndDate;
+    }
+
+    public void setValidityEndDate(@Nullable final LocalDate validityEndDate) {
+        this.validityEndDate = validityEndDate;
     }
 
     /**
@@ -136,36 +149,30 @@ public abstract class ChChildPolicySet {
     protected abstract TargetType createPolicySetTarget();
 
     /**
-     * Creates the policy set actions as a disjunctive sequence.
+     * Creates the policy set target Environments element.
      *
-     * @return the created {@link ActionsType}.
-     */
-    protected ActionsType createPolicySetActions() {
-        final var policySetActions = new ActionsType();
-        for (final var chAction : this.actions) {
-            policySetActions.getAction().add(new ActionType(new ActionMatchType(
-                    new AttributeValueType(chAction.getUrn(), AppcUrns.XS_ANY_URI),
-                    new AttributeDesignatorType(AppcUrns.OASIS_ACTION_ID, AppcUrns.XS_ANY_URI),
-                    AppcUrns.FUNCTION_ANY_URI_EQUAL
-            )));
-        }
-        return policySetActions;
-    }
-
-    /**
-     * Creates the policy set resources.
-     *
-     * @return the created {@link ResourcesType} or {@code null}.
+     * @return the created {@link EnvironmentsType} or {@code null} if it's empty.
      */
     @Nullable
-    protected ResourcesType createPolicySetResources() {
-        if (this.confidentialityCode == null) {
+    protected EnvironmentsType createPolicySetEnvironments() {
+        if (this.validityStartDate == null && this.validityEndDate == null) {
             return null;
         }
-        return new ResourcesType(new ResourceType(new ResourceMatchType(
-                new AttributeValueType(new CV(this.confidentialityCode)),
-                new AttributeDesignatorType(AppcUrns.IHE_CONFIDENTIALITY_CODE, AppcUrns.CV),
-                AppcUrns.FUNCTION_CV_EQUAL
-        )));
+        final List<EnvironmentMatchType> environmentMatches = new ArrayList<>();
+        if (this.validityStartDate != null) {
+            environmentMatches.add(new EnvironmentMatchType(
+                    new AttributeValueType(this.validityStartDate),
+                    new AttributeDesignatorType(AppcUrns.OASIS_ENV_CURRENT_DATE, AppcUrns.XS_DATE),
+                    AppcUrns.FUNCTION_DATE_GT_EQ
+            ));
+        }
+        if (this.validityEndDate != null) {
+            environmentMatches.add(new EnvironmentMatchType(
+                    new AttributeValueType(this.validityEndDate),
+                    new AttributeDesignatorType(AppcUrns.OASIS_ENV_CURRENT_DATE, AppcUrns.XS_DATE),
+                    AppcUrns.FUNCTION_DATE_LT_EQ
+            ));
+        }
+        return new EnvironmentsType(new EnvironmentType(environmentMatches));
     }
 }

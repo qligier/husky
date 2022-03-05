@@ -54,6 +54,7 @@ public class AppcUrns {
     public static final String FUNCTION_CV_EQUAL = "urn:hl7-org:v3:function:CV-equal";
     public static final String FUNCTION_ANY_URI_EQUAL = "urn:oasis:names:tc:xacml:1.0:function:anyURI-equal";
     public static final String FUNCTION_DATE_GT_EQ = "urn:oasis:names:tc:xacml:1.0:function:date-greater-than-or-equal";
+    public static final String FUNCTION_DATE_LT_EQ = "urn:oasis:names:tc:xacml:1.0:function:date-less-than-or-equal";
     public static final String II = "urn:hl7-org:v3#II";
     public static final String CV = "urn:hl7-org:v3#CV";
 

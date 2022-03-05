@@ -13,20 +13,13 @@ package org.husky.appc.ch.models;
 
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.husky.appc.AppcUrns;
-import org.husky.appc.ch.enums.ChAccessLevelPolicy;
-import org.husky.appc.ch.enums.ChAction;
 import org.husky.appc.models.*;
-import org.husky.common.ch.enums.ConfidentialityCode;
 import org.husky.communication.ch.enums.PurposeOfUse;
 import org.husky.communication.ch.enums.Role;
 
-import java.util.EnumSet;
+import java.time.LocalDate;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
-
-import static org.husky.appc.ch.enums.ChAccessLevelPolicy.PERMIT_READING_NORMAL;
-import static org.husky.appc.ch.enums.ChAction.*;
 
 /**
  * The model of a policy set targeting healthcare professionals accessing the patient record in an emergency purpose.
@@ -36,40 +29,36 @@ import static org.husky.appc.ch.enums.ChAction.*;
 public class ChChildPolicySetEmergency extends ChChildPolicySet {
 
     /**
-     * The list of policies that applies to this model.
-     */
-    public static final Set<ChAccessLevelPolicy> POLICIES = EnumSet.of(PERMIT_READING_NORMAL);
-
-    /**
-     * The list of actions that applies to this model.
-     */
-    public static final Set<ChAction> ACTIONS = EnumSet.of(REGISTRY_STORED_QUERY, RETRIEVE_DOCUMENT_SET,
-            CROSS_GATEWAY_QUERY, CROSS_GATEWAY_RETRIEVE, RETRIEVE_IMAGING_DOCUMENT_SET,
-            CROSS_GATEWAY_RETRIEVE_IMAGING_DOCUMENT_SET);
-
-    /**
      * Simple constructor. A random Id is assigned.
      *
-     * @param allowRestricted Whether to allow restricted access or not. If {@code false}, the confidentiality code is
-     *                        set to {@code normal}.
+     * @param policySetId The identifier of the referenced policy set.
      */
-    public ChChildPolicySetEmergency(final boolean allowRestricted) {
-        this(UUID.randomUUID().toString(), null, allowRestricted);
+    public ChChildPolicySetEmergency(final String policySetId) {
+        this(UUID.randomUUID().toString(), null, policySetId, null, null);
     }
 
     /**
      * Full constructor.
      *
-     * @param id              The policy set identifier.
-     * @param description     The description.
-     * @param allowRestricted Whether to allow restricted access or not. If {@code false}, the confidentiality code is
-     *                        set to {@code normal}.
+     * @param id          The policy set identifier.
+     * @param description The description.
+     * @param policySetId The identifier of the referenced policy set.
+     * @param validityStartDate The inclusive start date after which the policy set is valid.
+     * @param validityEndDate   The inclusive end date until which the policy set is valid.
      */
     public ChChildPolicySetEmergency(final String id,
                                      @Nullable final String description,
-                                     final boolean allowRestricted) {
-        super(id, description, POLICIES, ACTIONS,
-                allowRestricted ? ConfidentialityCode.RESTRICTED_ACCESSIBLE : ConfidentialityCode.NORMALLY_ACCESSIBLE);
+                                     final String policySetId,
+                                     @Nullable final LocalDate validityStartDate,
+                                     @Nullable final LocalDate validityEndDate) {
+        super(id, description, policySetId, validityStartDate, validityEndDate);
+    }
+
+    /**
+     * Returns the targeted role.
+     */
+    public Role getRole() {
+        return Role.HEALTHCARE_PROFESSIONAL;
     }
 
     /**
@@ -88,19 +77,7 @@ public class ChChildPolicySetEmergency extends ChChildPolicySet {
         );
         // Conjunctive sequence of subject matches
         final var target = new TargetType(new SubjectsType(new SubjectType(List.of(subjectMatch1, subjectMatch2))));
-        target.setActions(this.createPolicySetActions());
-        target.setResources(this.createPolicySetResources());
+        target.setEnvironments(this.createPolicySetEnvironments());
         return target;
-    }
-
-    @Override
-    public String toString() {
-        return "ChChildPolicySetEmergency{" +
-                "policies=" + this.policies +
-                ", actions=" + this.actions +
-                ", confidentialityCode=" + this.confidentialityCode +
-                ", id='" + this.id + '\'' +
-                ", description='" + this.description + '\'' +
-                '}';
     }
 }

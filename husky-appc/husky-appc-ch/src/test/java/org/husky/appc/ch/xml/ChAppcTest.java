@@ -11,17 +11,13 @@
 package org.husky.appc.ch.xml;
 
 import org.husky.appc.ch.models.*;
-import org.husky.common.ch.enums.ConfidentialityCode;
 import org.junit.jupiter.api.Test;
 
 import javax.xml.bind.JAXBException;
 import javax.xml.parsers.ParserConfigurationException;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Set;
 
-import static org.husky.appc.ch.enums.ChAccessLevelPolicy.*;
-import static org.husky.appc.ch.enums.ChAction.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -41,30 +37,31 @@ class ChAppcTest {
                         new ChChildPolicySetEmergency(
                                 "urn:uuid:29e64cce-19f6-43c4-9cc9-0227cb361ba1",
                                 "description emergency",
-                                true
+                                "urn:e-health-suisse:2015:policies:access-level:normal",
+                                null,
+                                null
                         ),
-                        new ChChildPolicySetHcp(
+                        new ChChildPolicySetHealthcareProfessional(
                                 "urn:uuid:46a1a4c0-ed1e-439b-8da8-a523b10ce2b5",
                                 "description hcp",
-                                Set.of(PERMIT_READING_SECRET, PERMIT_WRITING_SECRET),
-                                Set.of(ADD_POLICY, POLICY_QUERY),
-                                ConfidentialityCode.NORMALLY_ACCESSIBLE,
+                                "urn:e-health-suisse:2015:policies:exclusion-list",
+                                LocalDate.of(2027, 2, 3),
+                                null,
                                 "7601002860123"
                         ),
                         new ChChildPolicySetGroup(
                                 "urn:uuid:23393af4-68aa-46d1-a807-767e80fbd112",
                                 "description group",
-                                Set.of(PERMIT_READING_NORMAL),
-                                Set.of(RETRIEVE_DOCUMENT_SET),
-                                ConfidentialityCode.SECRET,
-                                "1.2.3",
-                                LocalDate.of(2032, 1, 1)
+                                "urn:e-health-suisse:2015:policies:access-level:normal",
+                                null,
+                                LocalDate.of(2032, 1, 1),
+                                "1.2.3"
                         ),
                         new ChChildPolicySetRepresentative(
                                 "urn:uuid:d2c24c5b-42b9-4dc2-874e-1c2803b6c07c",
                                 "description representative",
-                                Set.of(PERMIT_READING_NORMAL),
-                                Set.of(RETRIEVE_ATNA_AUDIT),
+                                "urn:e-health-suisse:2015:policies:access-level:normal",
+                                null,
                                 null,
                                 "1.2.3.4"
                         )
@@ -86,19 +83,16 @@ class ChAppcTest {
         assertInstanceOf(ChChildPolicySetEmergency.class, childPolicySet);
         assertEquals("urn:uuid:29e64cce-19f6-43c4-9cc9-0227cb361ba1", childPolicySet.getId());
         assertEquals("description emergency", childPolicySet.getDescription());
-        assertEquals(ConfidentialityCode.RESTRICTED_ACCESSIBLE, childPolicySet.getConfidentialityCode());
-        assertEquals(1, childPolicySet.getPolicies().size());
+        assertEquals("urn:e-health-suisse:2015:policies:access-level:normal", childPolicySet.getReferencedPolicySetId());
 
         childPolicySet = policySet.getPolicySets().get(1);
-        assertInstanceOf(ChChildPolicySetHcp.class, childPolicySet);
+        assertInstanceOf(ChChildPolicySetHealthcareProfessional.class, childPolicySet);
         assertEquals("urn:uuid:46a1a4c0-ed1e-439b-8da8-a523b10ce2b5", childPolicySet.getId());
         assertEquals("description hcp", childPolicySet.getDescription());
         assertEquals("7601002860123",
-                ((ChChildPolicySetHcp)childPolicySet).getHcpGln());
-        assertEquals(2, childPolicySet.getPolicies().size());
-        assertEquals(Set.of(PERMIT_READING_SECRET, PERMIT_WRITING_SECRET), childPolicySet.getPolicies());
-        assertEquals(Set.of(ADD_POLICY, POLICY_QUERY), childPolicySet.getActions());
-        assertEquals(ConfidentialityCode.NORMALLY_ACCESSIBLE, childPolicySet.getConfidentialityCode());
+                ((ChChildPolicySetHealthcareProfessional)childPolicySet).getHcpGln());
+        assertEquals("urn:e-health-suisse:2015:policies:exclusion-list", childPolicySet.getReferencedPolicySetId());
+        assertEquals(LocalDate.of(2027, 2, 3), childPolicySet.getValidityStartDate());
 
         childPolicySet = policySet.getPolicySets().get(2);
         assertInstanceOf(ChChildPolicySetGroup.class, childPolicySet);
@@ -108,10 +102,7 @@ class ChAppcTest {
                 ((ChChildPolicySetGroup)childPolicySet).getGroupOid());
         assertEquals(LocalDate.of(2032, 1, 1),
                 ((ChChildPolicySetGroup)childPolicySet).getValidityEndDate());
-        assertEquals(1, childPolicySet.getPolicies().size());
-        assertEquals(Set.of(PERMIT_READING_NORMAL), childPolicySet.getPolicies());
-        assertEquals(Set.of(RETRIEVE_DOCUMENT_SET), childPolicySet.getActions());
-        assertEquals(ConfidentialityCode.SECRET, childPolicySet.getConfidentialityCode());
+        assertEquals("urn:e-health-suisse:2015:policies:access-level:normal", childPolicySet.getReferencedPolicySetId());
 
         childPolicySet = policySet.getPolicySets().get(3);
         assertInstanceOf(ChChildPolicySetRepresentative.class, childPolicySet);
@@ -119,9 +110,6 @@ class ChAppcTest {
         assertEquals("description representative", childPolicySet.getDescription());
         assertEquals("1.2.3.4",
                 ((ChChildPolicySetRepresentative)childPolicySet).getRepresentativeId());
-        assertEquals(1, childPolicySet.getPolicies().size());
-        assertEquals(Set.of(PERMIT_READING_NORMAL), childPolicySet.getPolicies());
-        assertEquals(Set.of(RETRIEVE_ATNA_AUDIT), childPolicySet.getActions());
-        assertNull(childPolicySet.getConfidentialityCode());
+        assertEquals("urn:e-health-suisse:2015:policies:access-level:normal", childPolicySet.getReferencedPolicySetId());
     }
 }

@@ -11,19 +11,14 @@
 
 package org.husky.appc.ch.models;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.husky.appc.AppcUrns;
-import org.husky.appc.ch.enums.ChAccessLevelPolicy;
-import org.husky.appc.ch.enums.ChAction;
 import org.husky.appc.models.*;
-import org.husky.common.ch.enums.ConfidentialityCode;
 import org.husky.communication.ch.enums.Role;
 
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -39,48 +34,44 @@ public class ChChildPolicySetGroup extends ChChildPolicySet {
     private String groupOid;
 
     /**
-     * The inclusive end date until which the group is selected.
-     */
-    private LocalDate validityEndDate;
-
-    /**
      * Simple constructor. A random Id is assigned.
      *
-     * @param policies            The set of contained policies.
-     * @param actions             The set of action.
-     * @param confidentialityCode The confidentiality code of the documents if applicable or {@code null}.
-     * @param groupOid            The group OID number.
-     * @param validityEndDate     The inclusive end date until which the group is selected.
+     * @param policySetId     The identifier of the referenced policy set.
+     * @param groupOid        The group OID number.
+     * @param validityEndDate The inclusive end date until which the group is selected.
      */
-    public ChChildPolicySetGroup(final Set<@NonNull ChAccessLevelPolicy> policies,
-                                 final Set<@NonNull ChAction> actions,
-                                 @Nullable final ConfidentialityCode confidentialityCode,
+    public ChChildPolicySetGroup(final String policySetId,
                                  final String groupOid,
                                  final LocalDate validityEndDate) {
-        this(UUID.randomUUID().toString(), null, policies, actions, confidentialityCode, groupOid, validityEndDate);
+        this(UUID.randomUUID().toString(), null, policySetId, null, validityEndDate, groupOid);
     }
 
     /**
      * Full constructor.
      *
-     * @param id                  The policy set identifier.
-     * @param description         The description.
-     * @param policies            The set of contained policies.
-     * @param actions             The set of action.
-     * @param confidentialityCode The confidentiality code of the documents if applicable or {@code null}.
-     * @param groupOid            The group OID number.
-     * @param validityEndDate     The inclusive end date until which the group is selected.
+     * @param id              The policy set identifier.
+     * @param description     The description.
+     * @param policySetId     The identifier of the referenced policy set.
+     * @param validityStartDate The inclusive start date after which the policy set is valid.
+     * @param validityEndDate   The inclusive end date until which the policy set is valid.
+     * @param groupOid        The group OID number.
      */
     public ChChildPolicySetGroup(final String id,
                                  @Nullable final String description,
-                                 final Set<@NonNull ChAccessLevelPolicy> policies,
-                                 final Set<@NonNull ChAction> actions,
-                                 @Nullable final ConfidentialityCode confidentialityCode,
-                                 final String groupOid,
-                                 final LocalDate validityEndDate) {
-        super(id, description, policies, actions, confidentialityCode);
+                                 final String policySetId,
+                                 @Nullable final LocalDate validityStartDate,
+                                 @Nullable final LocalDate validityEndDate,
+                                 final String groupOid) {
+        super(id, description, policySetId, validityStartDate, validityEndDate);
         this.setGroupOid(groupOid);
-        this.validityEndDate = Objects.requireNonNull(validityEndDate);
+        Objects.requireNonNull(validityEndDate, "The validity end date is required");
+    }
+
+    /**
+     * Returns the targeted role.
+     */
+    public Role getRole() {
+        return Role.HEALTHCARE_PROFESSIONAL;
     }
 
     public String getGroupOid() {
@@ -90,14 +81,6 @@ public class ChChildPolicySetGroup extends ChChildPolicySet {
     public void setGroupOid(final String groupOid) {
         Objects.requireNonNull(groupOid);
         this.groupOid = groupOid.startsWith("urn:oid:") ? groupOid.substring(8) : groupOid;
-    }
-
-    public LocalDate getValidityEndDate() {
-        return validityEndDate;
-    }
-
-    public void setValidityEndDate(final LocalDate validityEndDate) {
-        this.validityEndDate = Objects.requireNonNull(validityEndDate);
     }
 
     /**
@@ -116,26 +99,7 @@ public class ChChildPolicySetGroup extends ChChildPolicySet {
         );
         // Conjunctive sequence of subject matches
         final var target = new TargetType(new SubjectsType(new SubjectType(List.of(subjectMatch1, subjectMatch2))));
-        target.setEnvironments(new EnvironmentsType(new EnvironmentType(new EnvironmentMatchType(
-                new AttributeValueType(this.validityEndDate),
-                new AttributeDesignatorType(AppcUrns.OASIS_ENV_CURRENT_DATE, AppcUrns.XS_DATE),
-                AppcUrns.FUNCTION_DATE_GT_EQ
-        ))));
-        target.setActions(this.createPolicySetActions());
-        target.setResources(this.createPolicySetResources());
+        target.setEnvironments(this.createPolicySetEnvironments());
         return target;
-    }
-
-    @Override
-    public String toString() {
-        return "ChChildPolicySetGroup{" +
-                "policies=" + this.policies +
-                ", actions=" + this.actions +
-                ", confidentialityCode=" + this.confidentialityCode +
-                ", id='" + this.id + '\'' +
-                ", description='" + this.description + '\'' +
-                ", groupOid='" + this.groupOid + '\'' +
-                ", validityEndDate=" + this.validityEndDate +
-                '}';
     }
 }

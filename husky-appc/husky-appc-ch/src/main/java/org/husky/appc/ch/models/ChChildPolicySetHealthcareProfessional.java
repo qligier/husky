@@ -11,20 +11,16 @@
 
 package org.husky.appc.ch.models;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.husky.appc.AppcUrns;
 import org.husky.appc.ch.ChAppcUrns;
-import org.husky.appc.ch.enums.ChAccessLevelPolicy;
-import org.husky.appc.ch.enums.ChAction;
 import org.husky.appc.models.*;
-import org.husky.common.ch.enums.ConfidentialityCode;
 import org.husky.common.utils.datatypes.Gln;
 import org.husky.communication.ch.enums.Role;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -32,7 +28,7 @@ import java.util.UUID;
  *
  * @author Quentin Ligier
  **/
-public class ChChildPolicySetHcp extends ChChildPolicySet {
+public class ChChildPolicySetHealthcareProfessional extends ChChildPolicySet {
 
     /**
      * The healthcare professional GLN number.
@@ -42,39 +38,42 @@ public class ChChildPolicySetHcp extends ChChildPolicySet {
     /**
      * Simple constructor. A random Id is assigned.
      *
-     * @param policies            The set of contained policies.
-     * @param actions             The set of action.
-     * @param confidentialityCode The confidentiality code of the documents if applicable or {@code null}.
-     * @param hcpGln              The healthcare professional GLN number.
+     * @param policySetId The identifier of the referenced policy set.
+     * @param hcpGln      The healthcare professional GLN number.
      */
-    public ChChildPolicySetHcp(final Set<@NonNull ChAccessLevelPolicy> policies,
-                               final Set<@NonNull ChAction> actions,
-                               @Nullable final ConfidentialityCode confidentialityCode,
-                               final String hcpGln) {
-        this(UUID.randomUUID().toString(), null, policies, actions, confidentialityCode, hcpGln);
+    public ChChildPolicySetHealthcareProfessional(final String policySetId,
+                                                  final String hcpGln) {
+        this(UUID.randomUUID().toString(), null, policySetId, null, null, hcpGln);
     }
 
     /**
      * Full constructor.
      *
-     * @param id                  The policy set identifier.
-     * @param description         The description.
-     * @param policies            The set of contained policies.
-     * @param actions             The set of action.
-     * @param confidentialityCode The confidentiality code of the documents if applicable or {@code null}.
-     * @param hcpGln              The healthcare professional GLN number.
+     * @param id          The policy set identifier.
+     * @param description The description.
+     * @param policySetId The identifier of the referenced policy set.
+     * @param validityStartDate The inclusive start date after which the policy set is valid.
+     * @param validityEndDate   The inclusive end date until which the policy set is valid.
+     * @param hcpGln      The healthcare professional GLN number.
      */
-    public ChChildPolicySetHcp(final String id,
-                               @Nullable final String description,
-                               final Set<@NonNull ChAccessLevelPolicy> policies,
-                               final Set<@NonNull ChAction> actions,
-                               @Nullable final ConfidentialityCode confidentialityCode,
-                               final String hcpGln) {
-        super(id, description, policies, actions, confidentialityCode);
+    public ChChildPolicySetHealthcareProfessional(final String id,
+                                                  @Nullable final String description,
+                                                  final String policySetId,
+                                                  @Nullable final LocalDate validityStartDate,
+                                                  @Nullable final LocalDate validityEndDate,
+                                                  final String hcpGln) {
+        super(id, description, policySetId, validityStartDate, validityEndDate);
         if (!Gln.match(Objects.requireNonNull(hcpGln))) {
             throw new IllegalArgumentException("The healthcare professional GLN is invalid");
         }
         this.hcpGln = hcpGln;
+    }
+
+    /**
+     * Returns the targeted role.
+     */
+    public Role getRole() {
+        return Role.HEALTHCARE_PROFESSIONAL;
     }
 
     public String getHcpGln() {
@@ -110,20 +109,7 @@ public class ChChildPolicySetHcp extends ChChildPolicySet {
         // Conjunctive sequence of subject matches
         final var target = new TargetType(new SubjectsType(new SubjectType(List.of(subjectMatch1, subjectMatch2,
                 subjectMatch3))));
-        target.setActions(this.createPolicySetActions());
-        target.setResources(this.createPolicySetResources());
+        target.setEnvironments(this.createPolicySetEnvironments());
         return target;
-    }
-
-    @Override
-    public String toString() {
-        return "ChChildPolicySetHcp{" +
-                "policies=" + this.policies +
-                ", actions=" + this.actions +
-                ", confidentialityCode=" + this.confidentialityCode +
-                ", id='" + this.id + '\'' +
-                ", description='" + this.description + '\'' +
-                ", hcpGln='" + this.hcpGln + '\'' +
-                '}';
     }
 }
