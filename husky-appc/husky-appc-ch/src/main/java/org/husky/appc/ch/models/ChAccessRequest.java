@@ -36,7 +36,8 @@ import java.util.Objects;
  *                             <li>DADM: the document administrator ID.</li>
  *                             <li>PADM: the policy administrator ID.</li>
  *                             </ul>
- * @param groupGlns            The GLNs of the groups the subject belongs to. Only for HCPs, TCUs, ASS'.
+ * @param organizationIds      The identifiers of the organization the subject belongs to. Only for HCPs, TCUs, ASS'. If
+ *                             it's an OID, it shall be URN-encoded.
  * @param purposeOfUse         The purpose of use of the current access.
  * @param role                 The role of the subject.
  * @param confidentialityCode  The confidentiality code of the document being accessed if applicable, or {@code null}.
@@ -46,7 +47,7 @@ import java.util.Objects;
 @Immutable // The collection is also immutable
 public record ChAccessRequest(ChAction action,
                               String subjectResponsibleId,
-                              List<@NonNull String> groupGlns,
+                              List<@NonNull String> organizationIds,
                               PurposeOfUse purposeOfUse,
                               Role role,
                               @Nullable ConfidentialityCode confidentialityCode,
@@ -66,7 +67,8 @@ public record ChAccessRequest(ChAction action,
      *                             <li>DADM: the document administrator ID.</li>
      *                             <li>PADM: the policy administrator ID.</li>
      *                             </ul>
-     * @param groupGlns            The GLNs of the groups the subject belongs to. Only for HCPs, TCUs, ASS'.
+     * @param organizationIds      The identifiers of the organization the subject belongs to. Only for HCPs, TCUs, ASS'. If
+     *                             it's an OID, it shall be URN-encoded.
      * @param purposeOfUse         The purpose of use of the current access.
      * @param role                 The role of the subject.
      * @param confidentialityCode  The confidentiality code of the document being accessed if applicable, or {@code
@@ -75,14 +77,14 @@ public record ChAccessRequest(ChAction action,
      */
     public ChAccessRequest(final ChAction action,
                            final String subjectResponsibleId,
-                           final List<@NonNull String> groupGlns,
+                           final List<@NonNull String> organizationIds,
                            final PurposeOfUse purposeOfUse,
                            final Role role,
                            final @Nullable ConfidentialityCode confidentialityCode,
                            final Instant environmentDate) {
         this.action = Objects.requireNonNull(action);
         this.subjectResponsibleId = Objects.requireNonNull(subjectResponsibleId);
-        this.groupGlns = Collections.unmodifiableList(Objects.requireNonNull(groupGlns));
+        this.organizationIds = Collections.unmodifiableList(Objects.requireNonNull(organizationIds));
         this.purposeOfUse = Objects.requireNonNull(purposeOfUse);
         this.role = Objects.requireNonNull(role);
         this.confidentialityCode = confidentialityCode;

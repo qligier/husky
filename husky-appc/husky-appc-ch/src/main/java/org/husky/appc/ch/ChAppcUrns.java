@@ -29,6 +29,8 @@ public class ChAppcUrns {
      */
     public static final String EPR_SPID = "urn:e-health-suisse:2015:epr-spid";
     public static final String REPRESENTATIVE_ID = "urn:e-health-suisse:representative-id";
+    public static final String POLICY_ADMINISTRATOR_ID = "urn:e-health-suisse:policy-administrator-id";
+    public static final String DOCUMENT_ADMINISTRATOR_ID = "urn:e-health-suisse:document-administrator-id";
 
     /**
      * Other URNs.

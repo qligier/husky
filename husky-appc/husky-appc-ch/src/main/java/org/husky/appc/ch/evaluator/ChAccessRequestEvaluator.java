@@ -12,20 +12,19 @@ package org.husky.appc.ch.evaluator;
 
 import org.husky.appc.algorithms.AuthorizationDecision;
 import org.husky.appc.algorithms.DenyOverridesAlgorithm;
-import org.husky.appc.ch.models.*;
-import org.husky.appc.ch.policy.ReferencedPolicy;
-import org.husky.appc.ch.policyset.*;
+import org.husky.appc.ch.models.ChAccessRequest;
+import org.husky.appc.ch.models.ChPolicyInterface;
+import org.husky.appc.ch.models.ChPolicySetDocument;
+import org.husky.appc.ch.models.ChPolicySetInterface;
 import org.husky.appc.enums.AuthorizationDecisionResult;
 import org.husky.appc.enums.RuleEffect;
-import org.husky.communication.ch.enums.PurposeOfUse;
-import org.husky.communication.ch.enums.Role;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.time.Instant;
 import java.time.LocalTime;
 import java.time.ZoneId;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * The request evaluator for Swiss access requests.
@@ -41,29 +40,15 @@ public class ChAccessRequestEvaluator {
     private final DenyOverridesAlgorithm denyOverridesAlgorithm = new DenyOverridesAlgorithm();
 
     /**
-     * The list of registered policy sets.
-     */
-    private final List<ReferencedPolicySet> referencedPolicySets = new ArrayList<>();
-
-    /**
      * Default constructor.
      */
     public ChAccessRequestEvaluator() {
-        this.referencedPolicySets.addAll(List.of(
+        /*this.referencedPolicySets.addAll(List.of(
                 PolicySetAccessLevelNormal.INSTANCE,
                 PolicySetDocumentAdministration.INSTANCE,
                 PolicySetPolicyAdministration.INSTANCE,
                 PolicySetExclusionList.INSTANCE
-        ));
-    }
-
-    /**
-     * Custom constructor.
-     *
-     * @param referencedPolicySets The list of registered policy sets.
-     */
-    public ChAccessRequestEvaluator(final List<ReferencedPolicySet> referencedPolicySets) {
-        this.referencedPolicySets.addAll(referencedPolicySets);
+        ));*/
     }
 
     /*
@@ -75,79 +60,50 @@ public class ChAccessRequestEvaluator {
      */
 
     public AuthorizationDecision evaluate(final ChAccessRequest accessRequest,
-                                          final ChPolicySet authorizationPolicies) {
-        final List<AuthorizationDecision> decisions = authorizationPolicies.getPolicySets().stream()
+                                          final ChPolicySetDocument policySetDocument) {
+        final List<AuthorizationDecision> decisions = policySetDocument.getContainedPolicySets().stream()
                 .map(policySet -> this.evaluatePolicySet(accessRequest, policySet))
                 .toList();
         return this.denyOverridesAlgorithm.combinePolicies(decisions);
     }
 
     AuthorizationDecision evaluatePolicySet(final ChAccessRequest accessRequest,
-                                            final ChChildPolicySet authorizationPolicy) {
-        if (authorizationPolicy.getValidityStartDate() != null) {
+                                            final ChPolicySetInterface policySet) {
+        if (policySet.getValidityStartDate() != null) {
             final Instant validityStartInstant =
-                    authorizationPolicy.getValidityStartDate().atTime(LocalTime.MIN).atZone(ZoneId.systemDefault()).toInstant();
+                    policySet.getValidityStartDate().atTime(LocalTime.MIN).atZone(ZoneId.systemDefault()).toInstant();
             if (validityStartInstant.isAfter(accessRequest.environmentDate())) {
                 return new AuthorizationDecision(AuthorizationDecisionResult.NOT_APPLICABLE);
             }
         }
-        if (authorizationPolicy.getValidityEndDate() != null) {
+        if (policySet.getValidityEndDate() != null) {
             final Instant validityEndInstant =
-                    authorizationPolicy.getValidityEndDate().atTime(LocalTime.MAX).atZone(ZoneId.systemDefault()).toInstant();
+                    policySet.getValidityEndDate().atTime(LocalTime.MAX).atZone(ZoneId.systemDefault()).toInstant();
             if (validityEndInstant.isAfter(accessRequest.environmentDate())) {
                 return new AuthorizationDecision(AuthorizationDecisionResult.NOT_APPLICABLE);
             }
         }
-
-        if (authorizationPolicy instanceof final ChChildPolicySetEmergency emergencyPolicy) {
-            if (accessRequest.purposeOfUse() != PurposeOfUse.EMERGENCY_ACCESS) {
-                return new AuthorizationDecision(AuthorizationDecisionResult.NOT_APPLICABLE);
-            }
-            if (accessRequest.role() != Role.HEALTHCARE_PROFESSIONAL) {
-                return new AuthorizationDecision(AuthorizationDecisionResult.NOT_APPLICABLE);
-            }
-        } else if (authorizationPolicy instanceof final ChChildPolicySetRepresentative representativePolicy) {
-            if (accessRequest.role() != Role.REPRESENTATIVE) {
-                return new AuthorizationDecision(AuthorizationDecisionResult.NOT_APPLICABLE);
-            }
-        } else if (authorizationPolicy instanceof final ChChildPolicySetHealthcareProfessional hcpPolicy) {
-            if (accessRequest.role() != Role.HEALTHCARE_PROFESSIONAL) {
-                return new AuthorizationDecision(AuthorizationDecisionResult.NOT_APPLICABLE);
-            }
-        } else if (authorizationPolicy instanceof final ChChildPolicySetGroup groupPolicy) {
-            if (!accessRequest.groupGlns().contains(groupPolicy.getGroupOid())) {
-                return new AuthorizationDecision(AuthorizationDecisionResult.NOT_APPLICABLE);
-            }
-            if (accessRequest.role() != Role.HEALTHCARE_PROFESSIONAL) {
-                return new AuthorizationDecision(AuthorizationDecisionResult.NOT_APPLICABLE);
-            }
-        } else {
-            throw new IllegalArgumentException("The authorization policy is unknown");
+        if (policySet.getRole() != null && policySet.getRole() != accessRequest.role()) {
+            return new AuthorizationDecision(AuthorizationDecisionResult.NOT_APPLICABLE);
         }
-        return this.evaluateReferencedPolicySet(accessRequest, authorizationPolicy.getReferencedPolicySetId());
-    }
-
-    AuthorizationDecision evaluateReferencedPolicySet(final ChAccessRequest accessRequest,
-                                                      final String policySetId) {
-        final var policySet = this.referencedPolicySets.stream()
-                .filter(rps -> policySetId.equals(rps.getId()))
-                .findAny()
-                .orElseThrow(() -> new IllegalArgumentException(String.format("The PolicySet id '%s' is unknown",
-                        policySetId)));
-
-        final var roles = policySet.getRoles();
-        if (roles != null && !roles.contains(accessRequest.role())) {
+        if (policySet.getPurposeOfUse() != null && policySet.getPurposeOfUse() != accessRequest.purposeOfUse()) {
+            return new AuthorizationDecision(AuthorizationDecisionResult.NOT_APPLICABLE);
+        }
+        if (policySet.getSubjectOrganizationId() != null && !accessRequest.organizationIds().contains(policySet.getSubjectOrganizationId())) {
             return new AuthorizationDecision(AuthorizationDecisionResult.NOT_APPLICABLE);
         }
 
-        final List<AuthorizationDecision> decisions = policySet.getPolicies().stream()
-                .map(policy -> this.evaluateReferencedPolicy(accessRequest, policy))
-                .toList();
+        final List<AuthorizationDecision> decisions = Stream.concat(
+                policySet.getReferencedPolicySets().stream()
+                        .map(policySet2 -> this.evaluatePolicySet(accessRequest, policySet2)),
+                policySet.getReferencedPolicies().stream()
+                        .map(policy -> this.evaluatePolicy(accessRequest, policy))
+        ).toList();
         return this.denyOverridesAlgorithm.combinePolicies(decisions);
     }
 
-    AuthorizationDecision evaluateReferencedPolicy(final ChAccessRequest accessRequest,
-                                                   final ReferencedPolicy policy) {
+    AuthorizationDecision evaluatePolicy(final ChAccessRequest accessRequest,
+                                         final ChPolicyInterface policy) {
         if (!policy.getActions().contains(accessRequest.action())) {
             return new AuthorizationDecision(AuthorizationDecisionResult.NOT_APPLICABLE);
         }

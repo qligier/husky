@@ -8,14 +8,10 @@
  * whereas medshare GmbH is the initial and main contributor/author of the eHealth Connector.
  *
  */
-package org.husky.appc.enums;
 
 /**
- * The intended consequence of a satisfied rule.
+ * Package for models and services dedicated to the EPR eMedication Service (Plan de Médication Partagé - PMP).
  *
  * @author Quentin Ligier
  **/
-public enum RuleEffect {
-
-    PERMIT, DENY
-}
+package org.husky.appc.ch.pmp;
