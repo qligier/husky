@@ -66,10 +66,10 @@ public class DosageInstructionsReader {
      */
     public DosageInstructionsReader(final POCDMT000040SubstanceAdministration subAdm) throws InvalidEmedContentException {
         Objects.requireNonNull(subAdm);
-        if (!TemplateIds.isInList(TemplateIds.DOSAGE_INSTRUCTIONS, subAdm.getTemplateId())) {
+        /* TODO if (!TemplateIds.isInList(TemplateIds.DOSAGE_INSTRUCTIONS, subAdm.getTemplateId())) {
             throw new InvalidEmedContentException("The given substance administration is not a dosage " +
                 "instructions content module");
-        }
+        }*/
         this.subAdm = subAdm;
         this.dosageType = this.getDosageTypeFromTemplateIds();
     }
