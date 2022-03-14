@@ -143,10 +143,9 @@ public class ChPharm1RequestValidator implements Validator<EbXMLAdhocQueryReques
                     new NumberValidation(DOC_ENTRY_SERVICE_END_FROM, timeValidator),
                     new NumberValidation(DOC_ENTRY_SERVICE_END_TO, timeValidator),
                     new CodeEnumValidation(DOC_ENTRY_FORMAT_CODE, true, EnumSet.of(
-                            FormatCode.COMMUNITY_MEDICATION_LIST // TODO: remove
-                            // TODO CDA-CH-EMED Medication Card
-                            // TODO Medication Card PDF
-                            // TODO CH-EMED Medication Card
+                            FormatCode.MEDICATION_CARD,
+                            FormatCode.MEDICATION_CARD_PDF_FORMAT,
+                            FormatCode.FHIR_MEDICATION_CARD
                     )),
                     new StatusValidation(DOC_ENTRY_STATUS),
                     new DocumentEntryTypeValidation(),
