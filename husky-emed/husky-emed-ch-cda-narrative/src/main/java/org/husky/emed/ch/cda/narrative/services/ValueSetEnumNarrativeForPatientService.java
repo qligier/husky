@@ -65,7 +65,7 @@ public class ValueSetEnumNarrativeForPatientService {
     public String getMessage(final ValueSetEnumInterface enumm,
                              final NarrativeLanguage language) {
         try {
-            return this.getProperties(language).getString(enumm.getValueSetName() + "." + enumm.getCodeValue());
+            return this.getProperties(language).getString(enumm.getValueSetName() + "." + enumm.name());
         } catch (final MissingResourceException ignored) {
             return enumm.getDisplayName(language.getLanguageCode());
         }
