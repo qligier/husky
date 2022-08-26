@@ -2,7 +2,6 @@ package org.husky.emed.ch.cda.narrative;
 
 import lombok.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.husky.common.basetypes.AddressBaseType;
 import org.husky.emed.ch.cda.narrative.enums.NarrativeLanguage;
 import org.husky.emed.ch.cda.narrative.enums.ProductCodeType;
 import org.husky.emed.ch.cda.narrative.services.ValueSetEnumNarrativeForPatientService;
@@ -16,8 +15,10 @@ import org.husky.emed.ch.models.treatment.MedicationProductIngredient;
 import java.io.IOException;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Stream;
 
 
 /**
@@ -42,49 +43,41 @@ public class NarrativeTreatmentItem {
     /**
      * The planning time.
      */
-    @NonNull
     private final String planningTime;
 
     /**
      * The medication name.
      */
-    @NonNull
     private final String productName;
 
     /**
      * The medication code type in the GTIN system or in the ATC system.
      */
-    @NonNull
     private final ProductCodeType codeType;
 
     /**
      * The medication code in the GTIN system or in the ATC system
      */
-    @NonNull
     private final String productCode;
 
     /**
      * The form code
      */
-    @NonNull
     private final String productFormCode;
 
     /**
      * The product dose unit
      */
-    @NonNull
     private final String productDoseUnit;
 
     /**
      * The active ingredients
      */
-    @NonNull
     private final List<NarrativeTreatmentIngredient> productIngredients;
 
     /**
      * The lower bound of the planned item validity period.
      */
-    @NonNull
     private final String treatmentStart;
 
     /**
@@ -178,14 +171,14 @@ public class NarrativeTreatmentItem {
     private NarrativeTreatmentItem(NarrativeTreatmentItemBuilder builder) {
         this.sectionAuthor = builder.sectionAuthor;
         this.documentAuthor = builder.documentAuthor;
-        this.planningTime = builder.planningTime;
-        this.productName = builder.productName;
-        this.codeType = builder.codeType;
-        this.productCode = builder.productCode;
-        this.productFormCode = builder.productFormCode;
-        this.productDoseUnit = builder.productDoseUnit;
-        this.productIngredients = builder.productIngredients;
-        this.treatmentStart = builder.treatmentStart;
+        this.planningTime = Objects.requireNonNull(builder.planningTime);
+        this.productName = Objects.requireNonNull(builder.productName);
+        this.codeType = Objects.requireNonNull(builder.codeType);
+        this.productCode = Objects.requireNonNull(builder.productCode);
+        this.productFormCode = Objects.requireNonNull(builder.productFormCode);
+        this.productDoseUnit = Objects.requireNonNull(builder.productDoseUnit);
+        this.productIngredients = Objects.requireNonNull(builder.productIngredients);
+        this.treatmentStart = Objects.requireNonNull(builder.treatmentStart);
         this.treatmentStop = builder.treatmentStop;
         this.narrativeDosageInstructions = builder.narrativeDosageInstructions;
         this.dosageIntakeMorning = builder.dosageIntakeMorning;
@@ -203,7 +196,7 @@ public class NarrativeTreatmentItem {
     }
 
     /**
-     * Creates builder to build {@link AddressBaseType}.
+     * Creates builder to build {@link NarrativeTreatmentItem}.
      * @param narrativeLanguage language in which the item should be generated
      *
      * @return created builder
@@ -211,6 +204,124 @@ public class NarrativeTreatmentItem {
      */
     public static NarrativeTreatmentItemBuilder builder(NarrativeLanguage narrativeLanguage) throws IOException {
         return new NarrativeTreatmentItemBuilder(narrativeLanguage);
+    }
+
+    @Nullable
+    public NarrativeTreatmentAuthor getSectionAuthor() {
+        return this.sectionAuthor;
+    }
+
+    @Nullable
+    public NarrativeTreatmentAuthor getDocumentAuthor() {
+        return this.documentAuthor;
+    }
+
+    @NonNull
+    public String getPlanningTime() {
+        return this.planningTime;
+    }
+
+    @NonNull
+    public String getProductName() {
+        return this.productName;
+    }
+
+    @NonNull
+    public ProductCodeType getCodeType() {
+        return this.codeType;
+    }
+
+    @NonNull
+    public String getProductCode() {
+        return this.productCode;
+    }
+
+    @NonNull
+    public String getProductFormCode() {
+        return this.productFormCode;
+    }
+
+    @NonNull
+    public String getProductDoseUnit() {
+        return this.productDoseUnit;
+    }
+
+    public List<NarrativeTreatmentIngredient> getProductIngredients() {
+        return this.productIngredients;
+    }
+
+    @NonNull
+    public String getTreatmentStart() {
+        return this.treatmentStart;
+    }
+
+    @Nullable
+    public String getTreatmentStop() {
+        return this.treatmentStop;
+    }
+
+    @Nullable
+    public String getNarrativeDosageInstructions() {
+        return this.narrativeDosageInstructions;
+    }
+
+    @Nullable
+    public String getDosageIntakeMorning() {
+        return this.dosageIntakeMorning;
+    }
+
+    @Nullable
+    public String getDosageIntakeNoon() {
+        return this.dosageIntakeNoon;
+    }
+
+    @Nullable
+    public String getDosageIntakeEvening() {
+        return this.dosageIntakeEvening;
+    }
+
+    @Nullable
+    public String getDosageIntakeNight() {
+        return this.dosageIntakeNight;
+    }
+
+    @Nullable
+    public String getDosageUnit() {
+        return this.dosageUnit;
+    }
+
+    @Nullable
+    public Integer getRepeatNumber() {
+        return this.repeatNumber;
+    }
+
+    @Nullable
+    public String getRouteOfAdministration() {
+        return this.routeOfAdministration;
+    }
+
+    @Nullable
+    public String getTreatmentReason() {
+        return this.treatmentReason;
+    }
+
+    @Nullable
+    public String getPatientMedicationInstructions() {
+        return this.patientMedicationInstructions;
+    }
+
+    @Nullable
+    public String getFulfilmentInstructions() {
+        return this.fulfilmentInstructions;
+    }
+
+    public boolean isInReserve() {
+        return this.inReserve;
+    }
+
+    @Nullable
+    public String getAnnotationComment() {
+        return this.annotationComment;
     }
 
     public static class NarrativeTreatmentItemBuilder {
@@ -248,6 +359,7 @@ public class NarrativeTreatmentItem {
         public NarrativeTreatmentItemBuilder(NarrativeLanguage narrativeLanguage) throws IOException {
             this.narrativeLanguage = narrativeLanguage;
             this.valueSetEnumNarrativeForPatientService = new ValueSetEnumNarrativeForPatientService();
+            this.productIngredients = new ArrayList<>();
         }
 
         public NarrativeTreatmentItemBuilder sectionAuthor(AuthorDigest sectionAuthor) {
@@ -286,7 +398,7 @@ public class NarrativeTreatmentItem {
                     .findAny()
                     .orElse(null));
 
-            this.productIngredients(product.getIngredients());
+            this.addProductIngredients(product.getIngredients());
 
             return this;
         }
@@ -316,10 +428,17 @@ public class NarrativeTreatmentItem {
             return this;
         }
 
-        public NarrativeTreatmentItemBuilder productIngredients(List<MedicationProductIngredient> productIngredients) {
-            this.productIngredients = productIngredients.stream()
+        public NarrativeTreatmentItemBuilder addProductIngredients(List<MedicationProductIngredient> productIngredients) {
+            this.productIngredients.addAll(productIngredients.stream()
                     .map(NarrativeTreatmentIngredient::new)
-                    .toList();
+                    .toList());
+            return this;
+        }
+
+        public NarrativeTreatmentItemBuilder addProductIngredients(MedicationProductIngredient... productIngredients) {
+            this.productIngredients.addAll(Stream.of(productIngredients)
+                    .map(NarrativeTreatmentIngredient::new)
+                    .toList());
             return this;
         }
 
@@ -456,46 +575,7 @@ public class NarrativeTreatmentItem {
         }
 
         public NarrativeTreatmentItem build() {
-            NarrativeTreatmentItem item = new NarrativeTreatmentItem(this);
-            validateNarrativeTreatmentItem(item);
-            return item;
-        }
-
-        private void validateNarrativeTreatmentItem(NarrativeTreatmentItem item) {
-            if (item.planningTime == null) {
-                throw new IllegalStateException("The planning time must be specified.");
-            }
-
-            if (item.productName == null) {
-                throw new IllegalStateException("The medicine name must be specified.");
-            }
-
-            if (item.codeType == null || item.productCode == null) {
-                throw new IllegalStateException("The medication code must be specified.");
-            }
-
-            if (item.productFormCode == null) {
-                throw new IllegalStateException("The medicine form code must be specified.");
-            }
-
-            if (item.productDoseUnit == null) {
-                throw new IllegalStateException("The quantity unit of the ingredients must be specified.");
-            }
-
-            if (item.productIngredients.size() == 0) {
-                throw new IllegalStateException("The active ingredients of the medicine must be specified.");
-            }
-
-            if (item.treatmentStart == null) {
-                throw new IllegalStateException("The start date of the treatment must be specified.");
-            }
-
-            if (item.narrativeDosageInstructions == null && item.dosageUnit == null) {
-                throw new IllegalStateException("The dosage must be specified");
-            }
-
-            ///////// intake int or string
-
+            return new NarrativeTreatmentItem(this);
         }
     }
 }

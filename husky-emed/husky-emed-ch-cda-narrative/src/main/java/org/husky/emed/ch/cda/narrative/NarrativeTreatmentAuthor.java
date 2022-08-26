@@ -1,7 +1,6 @@
 package org.husky.emed.ch.cda.narrative;
 
 import lombok.Data;
-import lombok.Getter;
 import lombok.NonNull;
 import org.husky.emed.ch.models.common.AddressDigest;
 import org.husky.emed.ch.models.common.AuthorDigest;

@@ -9,11 +9,17 @@ import org.husky.emed.ch.models.common.AddressDigest;
 import org.husky.emed.ch.models.common.AuthorDigest;
 import org.husky.emed.ch.models.common.PatientDigest;
 import org.husky.emed.ch.models.common.TelecomDigest;
+import org.husky.emed.ch.models.document.EmedDocumentDigest;
+import org.husky.emed.ch.models.document.EmedPmlcDocumentDigest;
+import org.husky.emed.ch.models.entry.EmedMtpEntryDigest;
 
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalAccessor;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Represents a narrative treatment document
@@ -25,80 +31,164 @@ public class NarrativeTreatmentDocument {
     /**
      * The type of document
      */
-    @NonNull
-    private CceDocumentType documentType;
+    private final CceDocumentType documentType;
+
+    /**
+     * The document creation time
+     */
+    private final String creationTime;
+
+    /**
+     * The time of the documentation
+     */
+    private final String documentationTime;
 
     /**
      * The active treatments
      */
-    @NonNull
-    private List<NarrativeTreatmentItem> activeTreatments;
+    private final List<NarrativeTreatmentItem> activeTreatments;
 
     /**
      * The recently stopped treatments
      */
-    @NonNull
-    private List<NarrativeTreatmentItem> recentTreatments;
+    private final List<NarrativeTreatmentItem> recentTreatments;
 
     /**
      * The author of document
      */
-    @NonNull
-    private NarrativeTreatmentAuthor author1;
+    private final NarrativeTreatmentAuthor author1;
 
     /**
      * The last medical author of document
      */
-    @NonNull
-    private NarrativeTreatmentAuthor author2;
+    private final NarrativeTreatmentAuthor author2;
 
     /**
      * The name of patient
      */
-    @NonNull
-    private String patientName;
+    private final String patientName;
 
     /**
      * The gender of patient
      */
-    @NonNull
-    private String patientGender;
+    private final String patientGender;
 
     /**
      * The birth date of patient
      */
-    @NonNull
-    private String patientBirthDate;
+    private final String patientBirthDate;
 
     /**
      * The address of patient
      */
-    @NonNull
-    private String patientAddress;
+    private final String patientAddress;
 
     /**
      * The number phone of patient
      */
-    @NonNull
-    private String patientContact;
+    private final String patientContact;
 
+    /**
+     * Constructor
+     * @param builder the builder
+     */
     private NarrativeTreatmentDocument(NarrativeTreatmentDocumentBuilder builder) {
-        // TODO
+        this.documentType = Objects.requireNonNull(builder.documentType);
+        this.creationTime = Objects.requireNonNull(builder.creationTime);
+        this.documentationTime = Objects.requireNonNull(builder.documentationTime);
+        this.activeTreatments = Objects.requireNonNull(builder.activeTreatments);
+        this.recentTreatments = Objects.requireNonNull(builder.recentTreatments);
+        this.author1 = Objects.requireNonNull(builder.author1);
+        this.author2 = Objects.requireNonNull(builder.author2);
+        this.patientName = Objects.requireNonNull(builder.patientName);
+        this.patientGender = Objects.requireNonNull(builder.patientGender);
+        this.patientBirthDate = Objects.requireNonNull(builder.patientBirthDate);
+        this.patientAddress = Objects.requireNonNull(builder.patientAddress);
+        this.patientContact = Objects.requireNonNull(builder.patientContact);
     }
 
+    /**
+     * Creates builder to build {@link NarrativeTreatmentDocument}.
+     * @param narrativeLanguage language in which the item should be generated
+     *
+     * @return created builder
+     * @throws IOException
+     */
     public static NarrativeTreatmentDocumentBuilder builder(NarrativeLanguage narrativeLanguage) throws IOException {
         return new NarrativeTreatmentDocumentBuilder(narrativeLanguage);
+    }
+
+    @NonNull
+    public CceDocumentType getDocumentType() {
+        return this.documentType;
+    }
+
+    @NonNull
+    public String getCreationTime() {
+        return this.creationTime;
+    }
+
+    @NonNull
+    public String getDocumentationTime() {
+        return this.documentationTime;
+    }
+
+    @NonNull
+    public List<NarrativeTreatmentItem> getActiveTreatments() {
+        return this.activeTreatments;
+    }
+
+    @NonNull
+    public List<NarrativeTreatmentItem> getRecentTreatments() {
+        return this.recentTreatments;
+    }
+
+    @NonNull
+    public NarrativeTreatmentAuthor getAuthor1() {
+        return this.author1;
+    }
+
+    @NonNull
+    public NarrativeTreatmentAuthor getAuthor2() {
+        return this.author2;
+    }
+
+    @NonNull
+    public String getPatientName() {
+        return this.patientName;
+    }
+
+    @NonNull
+    public  String getPatientGender() {
+        return this.patientGender;
+    }
+
+    @NonNull
+    public String getPatientBirthDate() {
+        return this.patientBirthDate;
+    }
+
+    @NonNull
+    public String getPatientAddress() {
+        return this.patientAddress;
+    }
+
+    @NonNull
+    public String getPatientContact() {
+        return this.patientContact;
     }
 
 
     public static class NarrativeTreatmentDocumentBuilder {
         private final String DATE_PATTERN = "dd.MM.yyyy";
         private final String DATETIME_PATTERN = "dd.MM.yyyy hh:mm:ss";
-        private NarrativeLanguage narrativeLanguage;
-        private ValueSetEnumNarrativeForPatientService valueSetEnumNarrativeForPatientService;
+        private final NarrativeLanguage narrativeLanguage;
+        private final ValueSetEnumNarrativeForPatientService valueSetEnumNarrativeForPatientService;
         private CceDocumentType documentType;
-        private List<NarrativeTreatmentItem> activeTreatments;
-        private List<NarrativeTreatmentItem> recentTreatments;
+        private String creationTime;
+        private String documentationTime;
+        private final List<NarrativeTreatmentItem> activeTreatments;
+        private final List<NarrativeTreatmentItem> recentTreatments;
         private NarrativeTreatmentAuthor author1;
         private NarrativeTreatmentAuthor author2;
         private String patientName;
@@ -110,6 +200,8 @@ public class NarrativeTreatmentDocument {
         public NarrativeTreatmentDocumentBuilder(NarrativeLanguage narrativeLanguage) throws IOException {
             this.narrativeLanguage = narrativeLanguage;
             this.valueSetEnumNarrativeForPatientService = new ValueSetEnumNarrativeForPatientService();
+            this.activeTreatments = new ArrayList<>();
+            this.recentTreatments = new ArrayList<>();
         }
 
         public NarrativeTreatmentDocumentBuilder documentType(CceDocumentType documentType) {
@@ -117,13 +209,35 @@ public class NarrativeTreatmentDocument {
             return this;
         }
 
-        public NarrativeTreatmentDocumentBuilder activeTreatments(List<NarrativeTreatmentItem> activeTreatments) {
-            this.activeTreatments = activeTreatments;
+        public NarrativeTreatmentDocumentBuilder creationTime(TemporalAccessor creationTime) {
+            this.creationTime = DateTimeFormatter.ofPattern(DATETIME_PATTERN, this.narrativeLanguage.getLocale())
+                    .format(creationTime);
             return this;
         }
 
-        public NarrativeTreatmentDocumentBuilder recentTreatments(List<NarrativeTreatmentItem> recentTreatments) {
-            this.recentTreatments = recentTreatments;
+        public NarrativeTreatmentDocumentBuilder documentationTime(TemporalAccessor documentationTime) {
+            this.documentationTime = DateTimeFormatter.ofPattern(DATETIME_PATTERN, this.narrativeLanguage.getLocale())
+                    .format(documentationTime);
+            return this;
+        }
+
+        public NarrativeTreatmentDocumentBuilder addActiveTreatments(List<NarrativeTreatmentItem> activeTreatments) {
+            this.activeTreatments.addAll(activeTreatments);
+            return this;
+        }
+
+        public NarrativeTreatmentDocumentBuilder addActiveTreatments(NarrativeTreatmentItem... activeTreatments) {
+            this.activeTreatments.addAll(List.of(activeTreatments));
+            return this;
+        }
+
+        public NarrativeTreatmentDocumentBuilder addRecentTreatments(List<NarrativeTreatmentItem> recentTreatments) {
+            this.recentTreatments.addAll(recentTreatments);
+            return this;
+        }
+
+        public NarrativeTreatmentDocumentBuilder addRecentTreatments(NarrativeTreatmentItem... recentTreatments) {
+            this.recentTreatments.addAll(List.of(recentTreatments));
             return this;
         }
 
@@ -166,33 +280,38 @@ public class NarrativeTreatmentDocument {
         }
 
         public NarrativeTreatmentDocumentBuilder patientContact(TelecomDigest contact) {
-            // TODO : To be defined
             this.patientContact = "TO BE DEFINED";
             return this;
         }
 
-        public NarrativeTreatmentDocument build() {
-            NarrativeTreatmentDocument document = new NarrativeTreatmentDocument(this);
-            validateNarrativeTreatmentDocument(document);
-            return document;
+        public NarrativeTreatmentDocumentBuilder emedDocumentDigest(EmedDocumentDigest documentDigest) {
+            this.documentType(documentDigest.getDocumentType());
+            this.creationTime(documentDigest.getCreationTime());
+            this.documentationTime(documentDigest.getDocumentationTime());
+            this.patient(documentDigest.getPatient());
+            if (documentDigest.getAuthors().size() == 2) {
+                this.author1(documentDigest.getAuthors().get(0));
+                this.author2(documentDigest.getAuthors().get(1));
+            }
+
+            if (documentDigest instanceof EmedPmlcDocumentDigest pmlcDocument) {
+                this.addActiveTreatments(pmlcDocument.getEntryDigests().stream()
+                        .map(mtp -> (EmedMtpEntryDigest)mtp)
+                        .map(mtp -> {
+                            try {
+                                return NarrativeTreatmentItem.builder(this.narrativeLanguage).emedMtpEntryDigest(mtp).build();
+                            } catch (IOException e) {
+                                throw new RuntimeException(e);
+                            }
+                        })
+                        .toList());
+            }
+
+            return this;
         }
 
-        private void validateNarrativeTreatmentDocument(NarrativeTreatmentDocument document) {
-            if (document.documentType == null) {
-                throw new IllegalStateException("The document type must be specified");
-            }
-
-            if (document.author1 == null) {
-                throw new IllegalStateException("The author of document must be specified");
-            }
-
-            if (document.author2 == null) {
-                throw new IllegalStateException("The last medical author of document must be specified");
-            }
-
-            if (document.patientName == null || document.patientGender == null || document.patientAddress == null || document.patientBirthDate == null || document.patientContact == null) {
-                throw new IllegalStateException("The patient information are incomplete");
-            }
+        public NarrativeTreatmentDocument build() {
+            return new NarrativeTreatmentDocument(this);
         }
     }
 }

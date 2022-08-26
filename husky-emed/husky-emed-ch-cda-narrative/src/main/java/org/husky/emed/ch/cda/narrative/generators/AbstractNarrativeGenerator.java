@@ -10,7 +10,9 @@
 package org.husky.emed.ch.cda.narrative.generators;
 
 import org.husky.common.enums.ValueSetEnumInterface;
+import org.husky.emed.ch.cda.narrative.NarrativeTreatmentItem;
 import org.husky.emed.ch.cda.narrative.enums.NarrativeLanguage;
+import org.husky.emed.ch.cda.narrative.enums.ProductCodeType;
 import org.husky.emed.ch.models.treatment.MedicationPackagedProduct;
 import org.husky.emed.ch.models.treatment.MedicationProduct;
 import org.w3c.dom.Element;
@@ -91,32 +93,28 @@ public abstract class AbstractNarrativeGenerator {
      * Gets the name of a medication product as a list of {@link Node}s.
      *
      * @param narDom  The narrative DOM factory.
-     * @param product The medication product.
+     * @param item The medication product.
      * @param lang    The language of the narrative to be generated.
      * @return The medication product name.
      */
     List<Node> formatMedicationName(final NarrativeDomFactory narDom,
-                                    final MedicationProduct product,
+                                    final NarrativeTreatmentItem item,
                                     final NarrativeLanguage lang) {
-        final var name = Optional.ofNullable(product.getName()).orElse(
-                Optional.ofNullable(product.getPackagedProduct()).map(MedicationPackagedProduct::getName).orElse(null)
-        );
-        final var gtin = Optional.ofNullable(product.getGtinCode()).orElse(
-                Optional.ofNullable(product.getPackagedProduct()).map(MedicationPackagedProduct::getGtinCode).orElse(null)
-        );
+        final var name = item.getProductName();
+        final var gtinOrAtcCode = item.getProductCode();
         // TODO: or ATC
-        if (name != null && gtin != null) {
-            final var url = "https://compendium.ch/search/setculture/fr-CH?backUrl=https://compendium.ch/search?q=" + gtin;
+        if (item.getCodeType() == ProductCodeType.GTIN) {
+            final var url = "https://compendium.ch/search/setculture/fr-CH?backUrl=https://compendium.ch/search?q=" + gtinOrAtcCode;
             return List.of(
                     narDom.text(name),
-                    narDom.link(url, gtin, "Voir la fiche du médicament", "gtin")
+                    narDom.link(url, gtinOrAtcCode, "Voir la fiche du médicament", "gtin")
             );
         }
-        final var magistral = "Préparation magistrale";
-        if (name != null) {
-            return List.of(narDom.text(name + " (" + magistral + ")"));
-        }
-        return List.of(narDom.text(magistral));
+//        final var magistral = "Préparation magistrale";
+//        if (name != null) {
+//            return List.of(narDom.text(name + " (" + magistral + ")"));
+//        }
+        return List.of(narDom.text(name));
     }
 
     Element createMedicationTable(final NarrativeDomFactory narDom,
