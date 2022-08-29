@@ -13,22 +13,103 @@
 
         <style>
             @page {
-                size: a4 landscape;
-                margin: 50px;
-                @top-left {
-                    content: counter(page);
-                    font-family: arimo;
-                }
-
-                @bottom-center {
-                    content: 'Page ' counter(page) ' sur ' counter(pages);
-                    font-family: arimo;
-                }
                 font-family: arimo;
+                margin: 1cm;
+                size: a4 landscape;
+                @top-center {
+                    font-family: arimo, serif;
+                    content: 'Page ' counter(page) ' de ' counter(pages);
+                    color: #3abdaf;
+                    border: 1px solid rebeccapurple;
+                }
+                @bottom-center {
+                    font-family: arimo, serif;
+                    content: 'Page ' counter(page) ' de ' counter(pages);
+                    color: #3abdaf;
+                }
+                @top-right {
+                    font-family: arimo, serif;
+                    content: 'Généré le ${generationDate}';
+                    color: #3abdaf;
+                    font-style: italic;
+                }
+                @top-left {
+                    font-family: arimo, serif;
+                    content: 'Généré par le PMP';
+                    color: #3abdaf;
+                    font-style: italic;
+                }
+                @bottom-left {
+                    content: element(hug);
+                }
+                @bottom-right {
+                    content: element(cara);
+                }
             }
             body {
                 margin: 0;
                 font-family: arimo;
+            }
+
+            table {
+                /* With -fs-table-paginate on, the header and footer
+                 * of a table will be repeated on each page that the table falls on.
+                 */
+                -fs-table-paginate: paginate;
+                border-collapse: collapse;
+                width: 100%;
+            }
+
+            thead {
+                background: #0086cb;
+                color: #ffffff;
+            }
+
+            tbody {
+                border: 1px solid #eee;
+            }
+
+            tbody tr:nth-child(even) {
+                background: #f2f2f2;
+            }
+
+            tbody tr:nth-child(even) td {
+                border-right: 1px solid #fff;
+            }
+
+            tbody tr:nth-child(odd) td {
+                border-right: 1px solid #f2f2f2;
+            }
+
+            td,
+            th {
+                padding: 0.2cm 0.3cm;
+                text-align: left;
+            }
+
+            .unit {
+                color: #0086cb;
+            }
+
+            .gtin {
+                color: #eb6b08;
+                position: relative;
+                top: -0.5em;
+                font-size: 80%;
+            }
+
+            .gtin:before {
+                content: "GTIN : ";
+                margin-left: 0.5em;
+            }
+
+            table .gtin {
+                display: none;
+            }
+
+            hr {
+                border: 0;
+                border-top: 1px solid gray;
             }
         </style>
     </head>

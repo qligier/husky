@@ -1,8 +1,12 @@
 package org.husky.emed.ch.cda.narrative.generators;
 
+import org.husky.common.enums.LanguageCode;
 import org.husky.common.hl7cdar2.POCDMT000040ClinicalDocument;
 import org.husky.common.utils.xml.XmlFactories;
 import org.husky.emed.ch.cda.digesters.CceDocumentDigester;
+import org.husky.emed.ch.cda.narrative.NarrativeTreatmentDocument;
+import org.husky.emed.ch.cda.narrative.enums.EmedTextNarrativeAttributes;
+import org.husky.emed.ch.cda.narrative.enums.NarrativeLanguage;
 import org.husky.emed.ch.cda.services.EmedEntryDigestService;
 import org.husky.emed.ch.cda.xml.CceDocumentUnmarshaller;
 import org.husky.emed.ch.models.entry.EmedEntryDigest;
@@ -18,11 +22,9 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import java.io.IOException;
 import java.io.StringReader;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -36,6 +38,7 @@ class PdfOriginalRepresentationGeneratorTest {
         UNMARSHALLER = context.createUnmarshaller();
     }
 
+    @Test
     void testPdf() throws Exception {
         final var emedEntryDigestServiceImpl = new EmedEntryDigestServiceImpl();
         final var digester = new CceDocumentDigester(emedEntryDigestServiceImpl);
@@ -46,8 +49,12 @@ class PdfOriginalRepresentationGeneratorTest {
         final var pmlcDocument = this.loadDoc("/PMLC_01_valid.xml");
         final var digest = digester.digest(pmlcDocument);
 
+        NarrativeTreatmentDocument doc = NarrativeTreatmentDocument.builder(NarrativeLanguage.FRENCH).emedDocumentDigest(digest).build();
+
+        final var templateHeader = new String(Objects.requireNonNull(PdfOriginalRepresentationGenerator.class.getResourceAsStream("/narrative/default/template.header.html")).readAllBytes(), StandardCharsets.UTF_8);
+
         PdfOriginalRepresentationGenerator pdfGenerator = new PdfOriginalRepresentationGenerator();
-        pdfGenerator.generate()
+        var pdf = pdfGenerator.generate(doc, NarrativeLanguage.FRENCH, templateHeader, "</body></html>");
 
     }
 

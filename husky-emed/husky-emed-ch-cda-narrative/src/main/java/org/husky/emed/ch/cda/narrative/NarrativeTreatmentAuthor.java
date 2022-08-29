@@ -24,9 +24,9 @@ public class NarrativeTreatmentAuthor {
     private String organization;
 
     public NarrativeTreatmentAuthor(@NonNull AuthorDigest author) {
-        if (author.getAddresses().size() == 0) {
-            throw new IllegalStateException("The author must have an address.");
-        }
+//        if (author.getAddresses().size() == 0) {
+//            throw new IllegalStateException("The author must have an address.");
+//        }
 
         if (author.getOrganization() == null || author.getOrganization().getNames().size() == 0) {
             throw new IllegalStateException("The author must have an organization name.");
@@ -34,8 +34,8 @@ public class NarrativeTreatmentAuthor {
 
         this.name = String.format("%s %s", author.getGivenName(), author.getFamilyName());
 
-        AddressDigest address = author.getAddresses().get(0);
-        this.address = String.format("%s %s %s", address.getStreetName(), address.getPostalCode(), address.getCity());
+//        AddressDigest address = author.getAddresses().get(0);
+//        this.address = String.format("%s %s %s", address.getStreetName(), address.getPostalCode(), address.getCity());
 
         OrganizationDigest organization = author.getOrganization();
         this.organization = organization.getNames().get(0);

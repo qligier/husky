@@ -15,6 +15,7 @@ import org.husky.emed.ch.models.entry.EmedMtpEntryDigest;
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAccessor;
 import java.util.ArrayList;
@@ -103,8 +104,8 @@ public class NarrativeTreatmentDocument {
         this.patientName = Objects.requireNonNull(builder.patientName);
         this.patientGender = Objects.requireNonNull(builder.patientGender);
         this.patientBirthDate = Objects.requireNonNull(builder.patientBirthDate);
-        this.patientAddress = Objects.requireNonNull(builder.patientAddress);
-        this.patientContact = Objects.requireNonNull(builder.patientContact);
+        this.patientAddress = "Unknown"; /*Objects.requireNonNull(builder.patientAddress);*/
+        this.patientContact = "Unknown"; /*Objects.requireNonNull(builder.patientContact);*/
     }
 
     /**
@@ -204,20 +205,24 @@ public class NarrativeTreatmentDocument {
             this.recentTreatments = new ArrayList<>();
         }
 
+        private String formatTemporalAccessor(String pattern, TemporalAccessor temporal) {
+            return DateTimeFormatter.ofPattern(pattern, this.narrativeLanguage.getLocale())
+                    .withZone(ZoneId.systemDefault())
+                    .format(temporal);
+        }
+
         public NarrativeTreatmentDocumentBuilder documentType(CceDocumentType documentType) {
             this.documentType = documentType;
             return this;
         }
 
         public NarrativeTreatmentDocumentBuilder creationTime(TemporalAccessor creationTime) {
-            this.creationTime = DateTimeFormatter.ofPattern(DATETIME_PATTERN, this.narrativeLanguage.getLocale())
-                    .format(creationTime);
+            this.creationTime = this.formatTemporalAccessor(DATETIME_PATTERN, creationTime);
             return this;
         }
 
         public NarrativeTreatmentDocumentBuilder documentationTime(TemporalAccessor documentationTime) {
-            this.documentationTime = DateTimeFormatter.ofPattern(DATETIME_PATTERN, this.narrativeLanguage.getLocale())
-                    .format(documentationTime);
+            this.documentationTime = this.formatTemporalAccessor(DATETIME_PATTERN, documentationTime);
             return this;
         }
 
@@ -269,8 +274,7 @@ public class NarrativeTreatmentDocument {
         }
 
         public NarrativeTreatmentDocumentBuilder patientBirthDate(LocalDate patientBirthDate) {
-            this.patientBirthDate = DateTimeFormatter.ofPattern(DATE_PATTERN, this.narrativeLanguage.getLocale())
-                    .format(patientBirthDate);
+            this.patientBirthDate = this.formatTemporalAccessor(DATE_PATTERN, patientBirthDate);
             return this;
         }
 
@@ -289,9 +293,9 @@ public class NarrativeTreatmentDocument {
             this.creationTime(documentDigest.getCreationTime());
             this.documentationTime(documentDigest.getDocumentationTime());
             this.patient(documentDigest.getPatient());
-            if (documentDigest.getAuthors().size() == 2) {
+            if (documentDigest.getAuthors().size() > 0) {
                 this.author1(documentDigest.getAuthors().get(0));
-                this.author2(documentDigest.getAuthors().get(1));
+                this.author2(documentDigest.getAuthors().get(documentDigest.getAuthors().size() == 2 ? 1 : 0));
             }
 
             if (documentDigest instanceof EmedPmlcDocumentDigest pmlcDocument) {

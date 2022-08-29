@@ -9,10 +9,15 @@
  */
 package org.husky.emed.ch.cda.narrative.generators;
 
+import org.apache.commons.lang3.StringUtils;
+import org.husky.common.enums.LanguageCode;
 import org.husky.common.enums.ValueSetEnumInterface;
+import org.husky.emed.ch.cda.narrative.NarrativeTreatmentIngredient;
 import org.husky.emed.ch.cda.narrative.NarrativeTreatmentItem;
 import org.husky.emed.ch.cda.narrative.enums.NarrativeLanguage;
 import org.husky.emed.ch.cda.narrative.enums.ProductCodeType;
+import org.husky.emed.ch.cda.narrative.services.ValueSetEnumNarrativeForPatientService;
+import org.husky.emed.ch.enums.TimingEventAmbu;
 import org.husky.emed.ch.models.treatment.MedicationPackagedProduct;
 import org.husky.emed.ch.models.treatment.MedicationProduct;
 import org.w3c.dom.Element;
@@ -37,6 +42,8 @@ public abstract class AbstractNarrativeGenerator {
      * The resource bundle that contains the translations.
      */
     protected final EnumMap<NarrativeLanguage, PropertyResourceBundle> bundles = new EnumMap<>(NarrativeLanguage.class);
+
+    protected final ValueSetEnumNarrativeForPatientService valueSetEnumNarrativeForPatientService = new ValueSetEnumNarrativeForPatientService();
 
     protected AbstractNarrativeGenerator() throws IOException {
         final Function<String, InputStream> getRes = (final String lang) ->
@@ -101,40 +108,51 @@ public abstract class AbstractNarrativeGenerator {
                                     final NarrativeTreatmentItem item,
                                     final NarrativeLanguage lang) {
         final var name = item.getProductName();
+
         final var gtinOrAtcCode = item.getProductCode();
         // TODO: or ATC
         if (item.getCodeType() == ProductCodeType.GTIN) {
             final var url = "https://compendium.ch/search/setculture/fr-CH?backUrl=https://compendium.ch/search?q=" + gtinOrAtcCode;
-            return List.of(
+
+            final var formCode = item.getProductFormCode();
+
+            final var dose = narDom.text(String.join("/", item.getProductIngredients().stream()
+                    .map(NarrativeTreatmentIngredient::getQuantityValue)
+                    .toList()) + item.getProductDoseUnit());
+
+            List<Node> nodeMedicationName = new ArrayList<>(List.of(
                     narDom.text(name),
-                    narDom.link(url, gtinOrAtcCode, "Voir la fiche du médicament", "gtin")
-            );
+                    narDom.link(url, gtinOrAtcCode, StringUtils.capitalize(this.getMessage("SEE_MEDICINE", lang)), "gtin"),
+                    narDom.br()));
+            nodeMedicationName.add(narDom.text(formCode));
+            nodeMedicationName.add(narDom.text(" - "));
+            nodeMedicationName.add(dose);
+
+            return nodeMedicationName;
         }
-//        final var magistral = "Préparation magistrale";
-//        if (name != null) {
-//            return List.of(narDom.text(name + " (" + magistral + ")"));
-//        }
+
+
+
         return List.of(narDom.text(name));
     }
 
     Element createMedicationTable(final NarrativeDomFactory narDom,
                                   final List<Element> bodyRows,
-                                  final NarrativeLanguage lang) {
+                                  final NarrativeLanguage lang) throws IOException {
         final var theadRow1 = narDom.tr(null);
-        theadRow1.appendChild(narDom.th("#n", "2", null));
-        theadRow1.appendChild(narDom.th("Nom du médicament", "2", null));
-        theadRow1.appendChild(narDom.th("Dosage", null, "5"));
-        theadRow1.appendChild(narDom.th("Voie et localisation", "2", null));
-        final var theadRow2 = narDom.tr(null);
-        theadRow2.appendChild(narDom.th("Matin", null, null));
-        theadRow2.appendChild(narDom.th("Midi", null, null));
-        theadRow2.appendChild(narDom.th("Soir", null, null));
-        theadRow2.appendChild(narDom.th("Nuit", null, null));
-        theadRow2.appendChild(narDom.th("", null, null));
+        theadRow1.appendChild(narDom.th(StringUtils.capitalize(this.getMessage("PACKAGE_NAME", lang)), null, "3"));
+        theadRow1.appendChild(narDom.th(formatDosageTh(narDom, TimingEventAmbu.MORNING, lang), null, null));
+        theadRow1.appendChild(narDom.th(formatDosageTh(narDom, TimingEventAmbu.NOON, lang), null, null));
+        theadRow1.appendChild(narDom.th(formatDosageTh(narDom, TimingEventAmbu.EVENING, lang), null, null));
+        theadRow1.appendChild(narDom.th(formatDosageTh(narDom, TimingEventAmbu.NIGHT, lang), null, null));
+        theadRow1.appendChild(narDom.th(StringUtils.capitalize(this.getMessage("DOSE_UNIT", lang)), null, null));
+        theadRow1.appendChild(narDom.th(StringUtils.capitalize(this.getMessage("DATE_FROM_TO", lang)), null, null));
+        theadRow1.appendChild(narDom.th(StringUtils.capitalize(this.getMessage("PATIENT_INSTRUCTIONS", lang)), null, null));
+        theadRow1.appendChild(narDom.th(StringUtils.capitalize(this.getMessage("REASON", lang)), null, null));
+        theadRow1.appendChild(narDom.th(StringUtils.capitalize(this.getMessage("PRESCRIBED_BY", lang)), null, null));
 
         final var thead = narDom.thead();
         thead.appendChild(theadRow1);
-        thead.appendChild(theadRow2);
 
         final var tbody = narDom.tbody();
         for (final var bodyRow : bodyRows) {
@@ -145,5 +163,34 @@ public abstract class AbstractNarrativeGenerator {
         table.appendChild(thead);
         table.appendChild(tbody);
         return table;
+    }
+
+    Node formatDosageTh(final NarrativeDomFactory narDom,
+                        final TimingEventAmbu timing,
+                        final NarrativeLanguage lang) {
+        Node dosageThNode = narDom.p(null);
+        byte[] b64;
+        try {
+             b64 = switch (timing) {
+                case MORNING:
+                    yield AbstractNarrativeGenerator.class.getResourceAsStream("/narrative/default/icons/sunrise.png").readAllBytes();
+                case NOON:
+                    yield AbstractNarrativeGenerator.class.getResourceAsStream("/narrative/default/icons/brightness-high.png").readAllBytes();
+                case EVENING:
+                    yield AbstractNarrativeGenerator.class.getResourceAsStream("/narrative/default/icons/sunset.png").readAllBytes();
+                case NIGHT:
+                    yield AbstractNarrativeGenerator.class.getResourceAsStream("/narrative/default/icons/moon.png").readAllBytes();
+            };
+        } catch (Exception e) {
+            b64 = null;
+        }
+
+        if (b64 != null) {
+            dosageThNode.appendChild(narDom.img("data:image/png;base64," + Base64.getEncoder().encodeToString(b64), this.valueSetEnumNarrativeForPatientService.getMessage(timing, lang)));
+        }
+        dosageThNode.appendChild(narDom.br());
+        dosageThNode.appendChild(narDom.text(StringUtils.capitalize(this.valueSetEnumNarrativeForPatientService.getMessage(timing, lang))));
+
+        return dosageThNode;
     }
 }

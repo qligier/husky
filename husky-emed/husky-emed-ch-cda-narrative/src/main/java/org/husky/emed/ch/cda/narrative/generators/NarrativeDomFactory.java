@@ -120,6 +120,18 @@ public class NarrativeDomFactory {
         return p;
     }
 
+    public Element img(@Nullable final String src,
+                       @Nullable final String alt) {
+        final var img = this.element("img");
+        if (src != null) {
+            img.setAttribute("src", src);
+        }
+        if (alt != null) {
+            img.setAttribute("alt", alt);
+        }
+        return img;
+    }
+
     public Element em(@Nullable final Object content) {
         final var em = this.element("em", "content");
         this.setNodeContent(em, content);
