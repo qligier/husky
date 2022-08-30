@@ -10,7 +10,7 @@
 package org.husky.emed.ch.cda.narrative.generators;
 
 import com.openhtmltopdf.outputdevice.helper.BaseRendererBuilder;
-import org.apache.commons.text.StringEscapeUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringSubstitutor;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.husky.emed.ch.cda.narrative.NarrativeTreatmentAuthor;
@@ -20,7 +20,6 @@ import org.husky.emed.ch.cda.narrative.enums.NarrativeLanguage;
 import org.husky.emed.ch.cda.narrative.pdf.HtmlToPdfAConverter;
 import org.husky.emed.ch.cda.narrative.pdf.OpenHtmlToPdfAConverter;
 import org.husky.emed.ch.cda.narrative.utils.NarrativeUtils;
-import org.husky.emed.ch.enums.TimingEventAmbu;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
@@ -28,6 +27,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.*;
 
 /**
@@ -123,25 +123,54 @@ public class PdfOriginalRepresentationGenerator extends AbstractNarrativeGenerat
         final var narDom = new NarrativeDomFactory(true);
         final var root = narDom.getDocument().getDocumentElement();
 
-        // Document title
-        root.appendChild(narDom.title1("Carte de médication", "title"));
+        // Document title & Patient's personal data
+        root.appendChild(this.formatHeader(narDom, document, lang));
 
-        // Patient's personal data
-        var patientPersonalData = narDom.div(null, "patient-data");
-        patientPersonalData.appendChild(narDom.title2(document.getPatientName(), "patient-data-name"));
-        patientPersonalData.appendChild(narDom.text(String.format("%s %s", document.getPatientBirthDate(), document.getPatientGender())));
-        patientPersonalData.appendChild(narDom.br());
-        patientPersonalData.appendChild(narDom.text(String.format("%s %s", document.getPatientAddress(), document.getPatientContact())));
-        root.appendChild(patientPersonalData);
+        // Last version
+        root.appendChild(narDom.p(StringUtils.capitalize(this.getMessage("LAST_VERSION", lang)) + " " + document.getDocumentationTime()));
 
         // Medication table
+        root.appendChild(narDom.title2(StringUtils.capitalize(this.getMessage("ACTIVE_TREATMENT", lang)), null));
+        List<NarrativeTreatmentItem> activeTreatments = document.getActiveTreatments().stream()
+                .filter(t -> !t.isInReserve())
+                .toList();
+        List<Element> medicationActiveTableRows = createMedicationTableRows(activeTreatments, lang, narDom);
+        root.appendChild(this.createMedicationTable(narDom, medicationActiveTableRows, lang));
+
+        // Medication in reserve
+        root.appendChild(narDom.title2(StringUtils.capitalize(this.getMessage("IN_RESERVE_TREATMENT", lang)), null));
+        List<NarrativeTreatmentItem> inReserveTreatment = document.getActiveTreatments().stream()
+                .filter(NarrativeTreatmentItem::isInReserve)
+                .toList();
+        List<Element> medicationInReserveTableRows = createMedicationTableRows(inReserveTreatment, lang, narDom);
+        root.appendChild(this.createMedicationTable(narDom, medicationInReserveTableRows, lang));
+
+        Map<String, String> variables = new HashMap<>(64);
+        variables.putIfAbsent("title", "Carte de médication");
+        variables.putIfAbsent("subject", "");
+        variables.putIfAbsent("author", this.author);
+        variables.putIfAbsent("description", "");
+        variables.putIfAbsent("lang", lang.getLanguageCode().getCodeValue());
+        variables.putIfAbsent("generationDate", formatTemporal(Instant.now(), "dd.MM.yyyy hh:mm:ss", lang));
+
+        final var stringSubstitutor = new StringSubstitutor(variables);
+        final String body = stringSubstitutor.replace(templateHeader)
+                + narDom.render()
+                + stringSubstitutor.replace(templateFooter);
+
+        return this.pdfConverter.convert(body);
+    }
+
+    List<Element> createMedicationTableRows(final List<NarrativeTreatmentItem> treatments,
+                                            final NarrativeLanguage lang,
+                                            final NarrativeDomFactory narDom) throws IOException {
         final var medicationTableRows = new ArrayList<Element>();
-        int i = 1;
-        for (final var treatment : document.getActiveTreatments()) {
+        for (final var treatment : treatments) {
             final var cells = new ArrayList<Element>();
 
             // Medication icon
-            cells.add(narDom.td(narDom.img(treatment.getProductIcon(), this.getMessage("MEDICATION_ICON", lang)), null));
+            var rowspanForComment = treatment.getAnnotationComment() != null ? "2" : null;
+            cells.add(narDom.td(narDom.img(treatment.getProductIcon(), this.getMessage("MEDICATION_ICON", lang)), "border-bottom border-top", rowspanForComment, null));
 
             // Medication name
             cells.add(narDom.td(this.formatMedicationName(narDom, treatment, lang), "col name"));
@@ -168,86 +197,27 @@ public class PdfOriginalRepresentationGenerator extends AbstractNarrativeGenerat
             // Prescribed by
             cells.add(narDom.td(treatment.getSectionAuthor().getName(), null));
 
-            medicationTableRows.add(narDom.tr(cells));
+            // Comments
+            if (treatment.getAnnotationComment() != null) {
+                var td = narDom.td(null, "comments", null, "11");
+                byte[] infoCircle = this.getResourceAsStream("/narrative/default/icons/info-circle.png").readAllBytes();
+                td.appendChild(narDom.img("data:image/png;base64," + Base64.getEncoder().encodeToString(infoCircle), this.getMessage("COMMENT", lang)));
+                td.appendChild(narDom.text(treatment.getAnnotationComment()));
 
-            // Treatment detail
-
-
-            ++i;
+                medicationTableRows.add(narDom.tr(cells, "border-top"));
+                medicationTableRows.add(narDom.tr(td, null));
+            } else {
+                medicationTableRows.add(narDom.tr(cells, "border-top border-bottom"));
+            }
         }
+
         if (medicationTableRows.isEmpty()) {
             final var td = narDom.td(narDom.em("Il n'y a pas de traitement actif"), "no-treatment");
-            td.setAttribute("colspan", "8");
-            medicationTableRows.add(narDom.tr(td));
-        }
-        root.appendChild(this.createMedicationTable(narDom, medicationTableRows, lang));
-
-        // Medication details
-        i = 1;
-        for (final var treatment : document.getActiveTreatments()) {
-            final var hr = narDom.getDocument().createElement("hr");
-            hr.setAttribute("id", "entry-" + i);
-            root.appendChild(hr);
-
-            root.appendChild(narDom.title2(List.of(
-                    narDom.span(i, "n"),
-                    this.formatMedicationName(narDom, treatment, lang)
-            ), "med_" + i));
-
-            // Last author
-            root.appendChild(narDom.div(List.of(
-                    narDom.title3("Dernier intervenant", null),
-                    narDom.p(this.formatAuthorName(narDom, treatment.getSectionAuthor(), lang))
-            ), "narrative last_author"));
-
-            if (treatment.getTreatmentReason() != null) {
-                root.appendChild(narDom.div(List.of(
-                        narDom.title3("Raison du traitement", null),
-                        narDom.p(StringEscapeUtils.escapeXml11(treatment.getTreatmentReason()))
-                ), "narrative treatment_reason"));
-            }
-            if (treatment.getAnnotationComment() != null) {
-                root.appendChild(narDom.div(List.of(
-                        narDom.title3("Commentaire", null),
-                        narDom.p(StringEscapeUtils.escapeXml11(treatment.getAnnotationComment()))
-                ), "narrative annotation_comment"));
-            }
-            if (treatment.getPatientMedicationInstructions() != null) {
-                root.appendChild(narDom.div(List.of(
-                        narDom.title3("Instructions de médication", null),
-                        narDom.p(StringEscapeUtils.escapeXml11(treatment.getPatientMedicationInstructions()))
-                ), "narrative medication_instructions"));
-            }
-            if (treatment.getFulfilmentInstructions() != null) {
-                root.appendChild(narDom.div(List.of(
-                        narDom.title3("Instructions de fulfilment", null),
-                        narDom.p(StringEscapeUtils.escapeXml11(treatment.getFulfilmentInstructions()))
-                ), "narrative fulfilment_instructions"));
-            }
-
-            ++i;
+            td.setAttribute("colspan", "12");
+            medicationTableRows.add(narDom.tr(td, null));
         }
 
-        root.appendChild(narDom.getDocument().createElement("hr"));
-        root.appendChild(narDom.div(List.of(
-                narDom.title3("Auteur du document", "document_author"),
-                narDom.p(this.formatAuthorName(narDom, document.getAuthor1(), lang))
-        ), "narrative document_author"));
-
-
-        Map<String, String> variables = new HashMap<>(64);
-        variables.putIfAbsent("title", "Carte de médication");
-        variables.putIfAbsent("subject", "");
-        variables.putIfAbsent("author", this.author);
-        variables.putIfAbsent("description", "");
-        variables.putIfAbsent("lang", lang.getLanguageCode().getCodeValue());
-
-        final var stringSubstitutor = new StringSubstitutor(variables);
-        final String body = stringSubstitutor.replace(templateHeader)
-                + narDom.render()
-                + stringSubstitutor.replace(templateFooter);
-
-        return this.pdfConverter.convert(body);
+        return  medicationTableRows;
     }
 
     /**
@@ -271,36 +241,35 @@ public class PdfOriginalRepresentationGenerator extends AbstractNarrativeGenerat
      * @param author
      * @return The author name.
      */
-    List<Node> formatAuthorName(final NarrativeDomFactory narDom,
-                                @Nullable NarrativeTreatmentAuthor author,
+    Node formatAuthorName(final NarrativeDomFactory narDom,
+                                final NarrativeTreatmentAuthor author,
                                 final NarrativeLanguage lang) {
 
-        if (author == null) {
-            return List.of(narDom.em("Inconnu"));
-        }
+        final var p = narDom.p(null);
+        p.appendChild(narDom.text(author.getName()));
+        p.appendChild(narDom.br());
 
-        final var nodes = new ArrayList<Node>();
-        if (author.getName() != null) {
-            nodes.add(narDom.text(author.getName()));
+        if (author.getOrganization() != null) {
+            p.appendChild(narDom.text(author.getOrganization()));
+            p.appendChild(narDom.br());
         }
-
-        if (nodes.isEmpty()) {
-            nodes.add(narDom.em("Inconnu"));
-        }
-        nodes.add(narDom.br());
 
         if (author.getAddress() != null && !author.getAddress().isEmpty()) {
-            final var address = author.getAddress();
-
-            if (address != null) {
-                nodes.add(narDom.text(address));
-                nodes.add(narDom.br());
-            }
+            p.appendChild(narDom.text(author.getAddress()));
+            p.appendChild(narDom.br());
         }
 
-        return nodes;
+        return p;
     }
 
+    /**
+     * Gets information on the dosage of the medicine
+     *
+     * @param narDom
+     * @param item The medicine
+     * @param lang
+     * @return
+     */
     List<Element> formatDosageCells(final NarrativeDomFactory narDom,
                                     final NarrativeTreatmentItem item,
                                     final NarrativeLanguage lang) {
@@ -320,12 +289,44 @@ public class PdfOriginalRepresentationGenerator extends AbstractNarrativeGenerat
         return cells;
     }
 
-    private Element displayQuantity(NarrativeDomFactory narDom, String quantity) {
+    /**
+     * Gets dosage of the medicine
+     *
+     * @param narDom
+     * @param quantity
+     * @return
+     */
+    Element displayQuantity(NarrativeDomFactory narDom, String quantity) {
         if (quantity == null || quantity.equals("")) {
-            return narDom.td(null, null);
+            return narDom.td("0", null);
         } else {
             return narDom.td(narDom.text(quantity), null);
         }
+    }
+    
+    Element formatPatientPersonalData(NarrativeDomFactory narDom, NarrativeTreatmentDocument document) {
+        var patientPersonalData = narDom.div(null, "patient-data");
+        patientPersonalData.appendChild(narDom.text(document.getPatientName()));
+        patientPersonalData.appendChild(narDom.br());
+        patientPersonalData.appendChild(narDom.text(String.format("%s, %s", document.getPatientBirthDate(), document.getPatientGender())));
+        patientPersonalData.appendChild(narDom.br());
+        patientPersonalData.appendChild(narDom.text(String.format("%s / %s", document.getPatientAddress(), document.getPatientContact())));
+        return patientPersonalData;
+    }
+
+    Element formatHeader(NarrativeDomFactory narDom, NarrativeTreatmentDocument document, NarrativeLanguage lang) {
+        var tr = narDom.tr(null, null);
+        tr.appendChild(narDom.td(narDom.title1(StringUtils.capitalize(this.getMessage("TITLE", lang)), "title"), null));
+        tr.appendChild(narDom.td(this.formatPatientPersonalData(narDom, document), null));
+        var tdAuthor = narDom.td(null, null);
+        tdAuthor.appendChild(narDom.title3(StringUtils.capitalize(this.getMessage("AUTHOR_DOCUMENT", lang)), null));
+        tdAuthor.appendChild(this.formatAuthorName(narDom, document.getAuthor1(), lang));
+
+        tr.appendChild(tdAuthor);
+
+        final var table = narDom.table();
+        table.appendChild(tr);
+        return table;
     }
 }
 /*

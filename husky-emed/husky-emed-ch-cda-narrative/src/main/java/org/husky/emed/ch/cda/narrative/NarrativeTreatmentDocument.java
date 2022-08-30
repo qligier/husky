@@ -1,6 +1,7 @@
 package org.husky.emed.ch.cda.narrative;
 
 import lombok.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.husky.common.enums.AdministrativeGender;
 import org.husky.emed.ch.cda.narrative.enums.NarrativeLanguage;
 import org.husky.emed.ch.cda.narrative.services.ValueSetEnumNarrativeForPatientService;
@@ -104,8 +105,8 @@ public class NarrativeTreatmentDocument {
         this.patientName = Objects.requireNonNull(builder.patientName);
         this.patientGender = Objects.requireNonNull(builder.patientGender);
         this.patientBirthDate = Objects.requireNonNull(builder.patientBirthDate);
-        this.patientAddress = "Unknown"; /*Objects.requireNonNull(builder.patientAddress);*/
-        this.patientContact = "Unknown"; /*Objects.requireNonNull(builder.patientContact);*/
+        this.patientAddress = builder.patientAddress;
+        this.patientContact = builder.patientContact;
     }
 
     /**
@@ -169,12 +170,10 @@ public class NarrativeTreatmentDocument {
         return this.patientBirthDate;
     }
 
-    @NonNull
-    public String getPatientAddress() {
-        return this.patientAddress;
-    }
+    @Nullable
+    public String getPatientAddress() { return this.patientAddress; }
 
-    @NonNull
+    @Nullable
     public String getPatientContact() {
         return this.patientContact;
     }
@@ -279,7 +278,7 @@ public class NarrativeTreatmentDocument {
         }
 
         public NarrativeTreatmentDocumentBuilder patientAddress(AddressDigest address) {
-            this.patientAddress = String.format("%s %s %s", address.getStreetName(), address.getPostalCode(), address.getCity());
+            this.patientAddress = String.format("%s, %s %s", address.getStreetName(), address.getPostalCode(), address.getCity());
             return this;
         }
 

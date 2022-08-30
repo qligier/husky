@@ -216,8 +216,11 @@ public class NarrativeDomFactory {
         return this.element("tfoot");
     }
 
-    public Element tr(@Nullable final Object content) {
+    public Element tr(@Nullable final Object content, @Nullable final String htmlClass) {
         final var tr = this.element("tr");
+        if (htmlClass != null && this.isHtml) {
+            tr.setAttribute("class", htmlClass);
+        }
         this.setNodeContent(tr, content);
         return tr;
     }
@@ -249,6 +252,32 @@ public class NarrativeDomFactory {
         this.setNodeContent(cell, content);
         if (htmlClass != null && this.isHtml) {
             cell.setAttribute("class", htmlClass);
+        }
+        return cell;
+    }
+
+    /**
+     * Creates a cell.
+     *
+     * @param content   The element content or {@code null}.
+     * @param htmlClass The class attribute or {@code null}. It's only set in HTML output.
+     * @return The created element.
+     */
+    public Element td(@Nullable final Object content,
+                      @Nullable final String htmlClass,
+                      @Nullable final String rowspan,
+                      @Nullable final String colspan) {
+        final var cell = this.element("td");
+        this.setNodeContent(cell, content);
+        if (htmlClass != null && this.isHtml) {
+            cell.setAttribute("class", htmlClass);
+        }
+
+        if (rowspan != null) {
+            cell.setAttribute("rowspan", rowspan);
+        }
+        if (colspan != null) {
+            cell.setAttribute("colspan", colspan);
         }
         return cell;
     }

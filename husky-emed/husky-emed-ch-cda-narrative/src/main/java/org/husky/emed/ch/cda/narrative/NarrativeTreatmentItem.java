@@ -12,9 +12,7 @@ import org.husky.emed.ch.models.entry.EmedMtpEntryDigest;
 import org.husky.emed.ch.models.treatment.MedicationProduct;
 import org.husky.emed.ch.models.treatment.MedicationProductIngredient;
 
-import javax.validation.constraints.Null;
 import java.io.IOException;
-import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAccessor;

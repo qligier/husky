@@ -26,6 +26,7 @@ import org.w3c.dom.Node;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.DateTimeException;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAccessor;
 import java.util.*;
@@ -67,6 +68,7 @@ public abstract class AbstractNarrativeGenerator {
                           final String pattern,
                           final NarrativeLanguage lang) throws DateTimeException {
         return DateTimeFormatter.ofPattern(pattern, lang.getLocale())
+                .withZone(ZoneId.systemDefault())
                 .format(temporal);
     }
 
@@ -121,8 +123,7 @@ public abstract class AbstractNarrativeGenerator {
                     .toList()) + item.getProductDoseUnit());
 
             List<Node> nodeMedicationName = new ArrayList<>(List.of(
-                    narDom.text(name),
-                    narDom.link(url, gtinOrAtcCode, StringUtils.capitalize(this.getMessage("SEE_MEDICINE", lang)), "gtin"),
+                    narDom.link(url, name, StringUtils.capitalize(this.getMessage("SEE_MEDICINE", lang)), null),
                     narDom.br()));
             nodeMedicationName.add(narDom.text(formCode));
             nodeMedicationName.add(narDom.text(" - "));
@@ -138,8 +139,8 @@ public abstract class AbstractNarrativeGenerator {
 
     Element createMedicationTable(final NarrativeDomFactory narDom,
                                   final List<Element> bodyRows,
-                                  final NarrativeLanguage lang) throws IOException {
-        final var theadRow1 = narDom.tr(null);
+                                  final NarrativeLanguage lang) {
+        final var theadRow1 = narDom.tr(null, null);
         theadRow1.appendChild(narDom.th(StringUtils.capitalize(this.getMessage("PACKAGE_NAME", lang)), null, "3"));
         theadRow1.appendChild(narDom.th(formatDosageTh(narDom, TimingEventAmbu.MORNING, lang), null, null));
         theadRow1.appendChild(narDom.th(formatDosageTh(narDom, TimingEventAmbu.NOON, lang), null, null));

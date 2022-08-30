@@ -9,6 +9,8 @@ import org.husky.emed.ch.cda.narrative.enums.EmedTextNarrativeAttributes;
 import org.husky.emed.ch.cda.narrative.enums.NarrativeLanguage;
 import org.husky.emed.ch.cda.services.EmedEntryDigestService;
 import org.husky.emed.ch.cda.xml.CceDocumentUnmarshaller;
+import org.husky.emed.ch.models.common.AddressDigest;
+import org.husky.emed.ch.models.common.TelecomDigest;
 import org.husky.emed.ch.models.entry.EmedEntryDigest;
 import org.junit.jupiter.api.Test;
 import org.xml.sax.InputSource;
@@ -49,7 +51,11 @@ class PdfOriginalRepresentationGeneratorTest {
         final var pmlcDocument = this.loadDoc("/PMLC_01_valid.xml");
         final var digest = digester.digest(pmlcDocument);
 
-        NarrativeTreatmentDocument doc = NarrativeTreatmentDocument.builder(NarrativeLanguage.FRENCH).emedDocumentDigest(digest).build();
+        NarrativeTreatmentDocument doc = NarrativeTreatmentDocument.builder(NarrativeLanguage.FRENCH)
+                .emedDocumentDigest(digest)
+                .patientAddress(new AddressDigest("Rue du patient", "1", "Genève", "1205", null))
+                .patientContact(new TelecomDigest(List.of(), List.of("0112223344"), List.of(), List.of(), List.of()))
+                .build();
 
         final var templateHeader = new String(Objects.requireNonNull(PdfOriginalRepresentationGenerator.class.getResourceAsStream("/narrative/default/template.header.html")).readAllBytes(), StandardCharsets.UTF_8);
 
