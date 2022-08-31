@@ -1,4 +1,4 @@
-package org.husky.emed.ch.cda.narrative;
+package org.husky.emed.ch.cda.narrative.treatment;
 
 import lombok.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -181,7 +181,7 @@ public class NarrativeTreatmentDocument {
 
     public static class NarrativeTreatmentDocumentBuilder {
         private final String DATE_PATTERN = "dd.MM.yyyy";
-        private final String DATETIME_PATTERN = "dd.MM.yyyy hh:mm:ss";
+        private final String DATETIME_PATTERN = "dd.MM.yyyy HH:mm:ss";
         private final NarrativeLanguage narrativeLanguage;
         private final ValueSetEnumNarrativeForPatientService valueSetEnumNarrativeForPatientService;
         private CceDocumentType documentType;

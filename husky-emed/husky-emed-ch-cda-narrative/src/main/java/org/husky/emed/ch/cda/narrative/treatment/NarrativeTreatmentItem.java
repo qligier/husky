@@ -1,4 +1,4 @@
-package org.husky.emed.ch.cda.narrative;
+package org.husky.emed.ch.cda.narrative.treatment;
 
 import lombok.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -81,6 +81,7 @@ public class NarrativeTreatmentItem {
     /**
      * The product dose unit
      */
+    @Nullable
     private final String productDoseUnit;
 
     /**
@@ -189,7 +190,7 @@ public class NarrativeTreatmentItem {
         this.codeType = Objects.requireNonNull(builder.codeType);
         this.productCode = Objects.requireNonNull(builder.productCode);
         this.productFormCode = Objects.requireNonNull(builder.productFormCode);
-        this.productDoseUnit = Objects.requireNonNull(builder.productDoseUnit);
+        this.productDoseUnit = builder.productDoseUnit;
         this.productIngredients = Objects.requireNonNull(builder.productIngredients);
         this.treatmentStart = Objects.requireNonNull(builder.treatmentStart);
         this.treatmentStop = builder.treatmentStop;
@@ -263,7 +264,7 @@ public class NarrativeTreatmentItem {
         return this.productFormCode;
     }
 
-    @NonNull
+    @Nullable
     public String getProductDoseUnit() {
         return this.productDoseUnit;
     }
@@ -349,7 +350,7 @@ public class NarrativeTreatmentItem {
     public static class NarrativeTreatmentItemBuilder {
 
         private final String DATE_PATTERN = "dd.MM.yyyy";
-        private final String DATETIME_PATTERN = "dd.MM.yyyy hh:mm:ss";
+        private final String DATETIME_PATTERN = "dd.MM.yyyy HH:mm:ss";
 
         private NarrativeLanguage narrativeLanguage;
         private ValueSetEnumNarrativeForPatientService valueSetEnumNarrativeForPatientService;

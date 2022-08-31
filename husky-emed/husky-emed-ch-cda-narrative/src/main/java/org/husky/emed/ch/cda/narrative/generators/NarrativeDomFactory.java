@@ -175,6 +175,16 @@ public class NarrativeDomFactory {
         return title;
     }
 
+    public Element title4(@Nullable final Object content,
+                          @Nullable final String id) {
+        final var title = this.element("h4", "content");
+        this.setNodeContent(title, content);
+        if (id != null) {
+            title.setAttribute("id", id);
+        }
+        return title;
+    }
+
     /**
      * Creates a link.
      *

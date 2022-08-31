@@ -10,16 +10,13 @@
 package org.husky.emed.ch.cda.narrative.generators;
 
 import org.apache.commons.lang3.StringUtils;
-import org.husky.common.enums.LanguageCode;
 import org.husky.common.enums.ValueSetEnumInterface;
-import org.husky.emed.ch.cda.narrative.NarrativeTreatmentIngredient;
-import org.husky.emed.ch.cda.narrative.NarrativeTreatmentItem;
+import org.husky.emed.ch.cda.narrative.treatment.NarrativeTreatmentIngredient;
+import org.husky.emed.ch.cda.narrative.treatment.NarrativeTreatmentItem;
 import org.husky.emed.ch.cda.narrative.enums.NarrativeLanguage;
 import org.husky.emed.ch.cda.narrative.enums.ProductCodeType;
 import org.husky.emed.ch.cda.narrative.services.ValueSetEnumNarrativeForPatientService;
 import org.husky.emed.ch.enums.TimingEventAmbu;
-import org.husky.emed.ch.models.treatment.MedicationPackagedProduct;
-import org.husky.emed.ch.models.treatment.MedicationProduct;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
@@ -126,8 +123,11 @@ public abstract class AbstractNarrativeGenerator {
                     narDom.link(url, name, StringUtils.capitalize(this.getMessage("SEE_MEDICINE", lang)), null),
                     narDom.br()));
             nodeMedicationName.add(narDom.text(formCode));
-            nodeMedicationName.add(narDom.text(" - "));
-            nodeMedicationName.add(dose);
+
+            if (!item.getProductIngredients().isEmpty()) {
+                nodeMedicationName.add(narDom.text(" - "));
+                nodeMedicationName.add(dose);
+            }
 
             return nodeMedicationName;
         }
@@ -148,7 +148,6 @@ public abstract class AbstractNarrativeGenerator {
         theadRow1.appendChild(narDom.th(formatDosageTh(narDom, TimingEventAmbu.NIGHT, lang), null, null));
         theadRow1.appendChild(narDom.th(StringUtils.capitalize(this.getMessage("DOSE_UNIT", lang)), null, null));
         theadRow1.appendChild(narDom.th(StringUtils.capitalize(this.getMessage("DATE_FROM_TO", lang)), null, null));
-        theadRow1.appendChild(narDom.th(StringUtils.capitalize(this.getMessage("PATIENT_INSTRUCTIONS", lang)), null, null));
         theadRow1.appendChild(narDom.th(StringUtils.capitalize(this.getMessage("REASON", lang)), null, null));
         theadRow1.appendChild(narDom.th(StringUtils.capitalize(this.getMessage("PRESCRIBED_BY", lang)), null, null));
 

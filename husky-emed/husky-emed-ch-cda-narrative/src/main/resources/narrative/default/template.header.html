@@ -13,28 +13,28 @@
 
         <style>
             @page {
-                font-family: Roboto, sans-serif;
+                font-family: arimo, sans-serif;
                 margin: 1cm;
                 size: a4 landscape;
                 @top-center {
-                    font-family: Roboto, sans-serif;
+                    font-family: arimo, sans-serif;
                     content: 'Page ' counter(page) ' de ' counter(pages);
                     color: #3abdaf;
                     border: 1px solid rebeccapurple;
                 }
                 @bottom-center {
-                    font-family: Roboto, sans-serif;
+                    font-family: arimo, sans-serif;
                     content: 'Page ' counter(page) ' de ' counter(pages);
                     color: #3abdaf;
                 }
                 @top-right {
-                    font-family: Roboto, sans-serif;
+                    font-family: arimo, sans-serif;
                     content: 'Généré le ${generationDate}';
                     color: #3abdaf;
                     font-style: italic;
                 }
                 @top-left {
-                    font-family: Roboto, sans-serif;
+                    font-family: arimo, sans-serif;
                     content: 'Généré par le PMP';
                     color: #3abdaf;
                     font-style: italic;
@@ -48,7 +48,7 @@
             }
             body {
                 margin: 0;
-                font-family: Roboto, sans-serif;
+                font-family: arimo, sans-serif;
             }
 
             table {
@@ -66,20 +66,18 @@
 
             thead th {
                 text-align: center;
+                border-bottom: 1px solid black;
             }
 
-            tbody tr:nth-child(even) {
-                background: #f2f2f2;
+            tr {
+                page-break-inside: avoid;
+                page-break-after: auto;
             }
 
             td,
             th {
                 padding: 0.2cm 0.3cm;
                 text-align: left;
-            }
-
-            .unit {
-                color: #0086cb;
             }
 
             .gtin {
@@ -101,6 +99,10 @@
             hr {
                 border: 0;
                 border-top: 1px solid gray;
+            }
+
+            h4, p{
+                margin: 2px 0;
             }
 
             img {

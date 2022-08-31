@@ -1,4 +1,4 @@
-package org.husky.emed.ch.cda.narrative;
+package org.husky.emed.ch.cda.narrative.treatment;
 
 import lombok.Data;
 import lombok.NonNull;

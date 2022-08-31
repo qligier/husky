@@ -1,11 +1,9 @@
 package org.husky.emed.ch.cda.narrative.generators;
 
-import org.husky.common.enums.LanguageCode;
 import org.husky.common.hl7cdar2.POCDMT000040ClinicalDocument;
 import org.husky.common.utils.xml.XmlFactories;
 import org.husky.emed.ch.cda.digesters.CceDocumentDigester;
-import org.husky.emed.ch.cda.narrative.NarrativeTreatmentDocument;
-import org.husky.emed.ch.cda.narrative.enums.EmedTextNarrativeAttributes;
+import org.husky.emed.ch.cda.narrative.treatment.NarrativeTreatmentDocument;
 import org.husky.emed.ch.cda.narrative.enums.NarrativeLanguage;
 import org.husky.emed.ch.cda.services.EmedEntryDigestService;
 import org.husky.emed.ch.cda.xml.CceDocumentUnmarshaller;
@@ -22,13 +20,13 @@ import javax.xml.bind.JAXBIntrospector;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.parsers.ParserConfigurationException;
 
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.*;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 class PdfOriginalRepresentationGeneratorTest {
 
@@ -41,20 +39,15 @@ class PdfOriginalRepresentationGeneratorTest {
     }
 
     @Test
-    void testPdf() throws Exception {
+    void testGeneratePdf() throws Exception {
         final var emedEntryDigestServiceImpl = new EmedEntryDigestServiceImpl();
         final var digester = new CceDocumentDigester(emedEntryDigestServiceImpl);
 
-        emedEntryDigestServiceImpl.addAll(this.getEntryDigests("/MTP_01_valid.xml", digester));
-        emedEntryDigestServiceImpl.addAll(this.getEntryDigests("/MTP_02_valid.xml", digester));
-
-        final var pmlcDocument = this.loadDoc("/PMLC_01_valid.xml");
+        final var pmlcDocument = this.loadDoc("/pmlc1.xml");
         final var digest = digester.digest(pmlcDocument);
 
         NarrativeTreatmentDocument doc = NarrativeTreatmentDocument.builder(NarrativeLanguage.FRENCH)
                 .emedDocumentDigest(digest)
-                .patientAddress(new AddressDigest("Rue du patient", "1", "Genève", "1205", null))
-                .patientContact(new TelecomDigest(List.of(), List.of("0112223344"), List.of(), List.of(), List.of()))
                 .build();
 
         final var templateHeader = new String(Objects.requireNonNull(PdfOriginalRepresentationGenerator.class.getResourceAsStream("/narrative/default/template.header.html")).readAllBytes(), StandardCharsets.UTF_8);
@@ -62,51 +55,16 @@ class PdfOriginalRepresentationGeneratorTest {
         PdfOriginalRepresentationGenerator pdfGenerator = new PdfOriginalRepresentationGenerator();
         var pdf = pdfGenerator.generate(doc, NarrativeLanguage.FRENCH, templateHeader, "</body></html>");
 
-    }
-
-    private List<EmedEntryDigest> getEntryDigests(String docPath, CceDocumentDigester digester) throws Exception {
-        final var document = this.loadDoc(docPath);
-        return digester.digest(document).getEntryDigests();
+        OutputStream pdfOut = new FileOutputStream("pdtOut.pdf");
+        pdfOut.write(pdf);
+        pdfOut.close();
     }
 
     private POCDMT000040ClinicalDocument loadDoc(final String docName) throws SAXException {
         return CceDocumentUnmarshaller.unmarshall(PdfOriginalRepresentationGeneratorTest.class.getResourceAsStream(docName));
     }
 
-    private POCDMT000040ClinicalDocument unmarshall(final String content) throws ParserConfigurationException, IOException, SAXException, JAXBException {
-        final var completeElement = """
-                <ClinicalDocument xmlns:pharm="urn:ihe:pharm" xmlns="urn:hl7-org:v3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:hl7-org:v3 ../../../../schemas/PHARM/schemas/cda/extendedschemas/CDA_extended_pharmacy.xsd">
-                """ + content + """
-                </ClinicalDocument>
-                """;
-
-        final var document =
-                XmlFactories.newSafeDocumentBuilder().parse(new InputSource(new StringReader(completeElement)));
-
-        final Object root = UNMARSHALLER.unmarshal(document, UNMARSHALLED_CLASS);
-        return (POCDMT000040ClinicalDocument) JAXBIntrospector.getValue(root);
-    }
-
     public static class EmedEntryDigestServiceImpl implements EmedEntryDigestService {
-
-        private final List<EmedEntryDigest> digests = new ArrayList<>();
-
-        public Optional<EmedEntryDigest> getById(UUID entryId) {
-            return this.digests.stream().filter(digest -> digest.getEntryId().equals(entryId)).findAny();
-        }
-
-        public int getSequence(UUID medicationTreatmentId, Instant creationTime) {
-            return 0;
-        }
-
-        public void add(EmedEntryDigest digest) {
-            this.digests.add(digest);
-        }
-
-        public void addAll(List<EmedEntryDigest> digests) {
-            this.digests.addAll(digests);
-        }
-
         @Override
         public Optional<EmedEntryDigest> getById(String entryId) {
             return Optional.empty();

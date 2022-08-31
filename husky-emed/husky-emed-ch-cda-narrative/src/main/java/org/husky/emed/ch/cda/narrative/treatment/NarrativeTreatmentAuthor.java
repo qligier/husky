@@ -1,11 +1,10 @@
-package org.husky.emed.ch.cda.narrative;
+package org.husky.emed.ch.cda.narrative.treatment;
 
 import lombok.Data;
 import lombok.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.husky.emed.ch.models.common.AddressDigest;
 import org.husky.emed.ch.models.common.AuthorDigest;
-import org.husky.emed.ch.models.common.OrganizationDigest;
 
 /**
  * Represents the author of an eMed document, section or item entry
@@ -30,13 +29,11 @@ public class NarrativeTreatmentAuthor {
         }
 
         this.name = String.format("%s %s", author.getGivenName(), author.getFamilyName());
+        this.organization = author.getOrganization().getNames().get(0);
 
         if (author.getAddresses().size() > 0) {
             AddressDigest address = author.getAddresses().get(0);
             this.address = String.format("%s %s %s", address.getStreetName(), address.getPostalCode(), address.getCity());
         }
-
-        OrganizationDigest organization = author.getOrganization();
-        this.organization = organization.getNames().get(0);
     }
 }
