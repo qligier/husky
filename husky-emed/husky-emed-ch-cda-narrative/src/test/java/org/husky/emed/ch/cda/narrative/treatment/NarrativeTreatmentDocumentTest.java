@@ -1,7 +1,6 @@
 package org.husky.emed.ch.cda.narrative.treatment;
 
 import org.husky.common.hl7cdar2.POCDMT000040ClinicalDocument;
-import org.husky.common.utils.xml.XmlFactories;
 import org.husky.emed.ch.cda.digesters.CceDocumentDigester;
 import org.husky.emed.ch.cda.narrative.enums.NarrativeLanguage;
 import org.husky.emed.ch.cda.narrative.enums.ProductCodeType;
@@ -10,16 +9,11 @@ import org.husky.emed.ch.cda.xml.CceDocumentUnmarshaller;
 import org.husky.emed.ch.enums.CceDocumentType;
 import org.husky.emed.ch.models.entry.EmedEntryDigest;
 import org.junit.jupiter.api.Test;
-import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
-import javax.xml.bind.JAXBIntrospector;
 import javax.xml.bind.Unmarshaller;
-import javax.xml.parsers.ParserConfigurationException;
-import java.io.IOException;
-import java.io.StringReader;
 import java.time.Instant;
 import java.util.*;
 
@@ -72,10 +66,10 @@ class NarrativeTreatmentDocumentTest {
         assertEquals(ProductCodeType.GTIN, item1.getCodeType());
         assertEquals("7680531520746", item1.getProductCode());
         assertEquals("Gélule", item1.getProductFormCode());
-        assertEquals("mg", item1.getProductDoseUnit());
         assertEquals(1, item1.getProductIngredients().size());
         assertEquals("Tacrolimus", item1.getProductIngredients().get(0).getName());
-        assertEquals("0.5", item1.getProductIngredients().get(0).getQuantityValue());
+        assertEquals("0.5", item1.getProductIngredients().get(0).getQuantity());
+        assertEquals("mg", item1.getProductIngredients().get(0).getUnit());
         assertEquals("10.01.2022", item1.getTreatmentStart());
         assertEquals("10.03.2022", item1.getTreatmentStop());
         assertNull(item1.getNarrativeDosageInstructions());

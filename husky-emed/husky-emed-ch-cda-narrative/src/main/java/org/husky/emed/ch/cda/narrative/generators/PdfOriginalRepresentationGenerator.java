@@ -182,7 +182,15 @@ public class PdfOriginalRepresentationGenerator extends AbstractNarrativeGenerat
             cells.add(narDom.td(this.formatMedicationName(narDom, treatment, lang), "col name"));
 
             // Medication image
-            cells.add(narDom.td(narDom.img(treatment.getProductImage(), this.getMessage("MEDICATION_IMAGE", lang)), null));
+            var tdImage = narDom.td(null, null);
+            if (treatment.getProductImageFront() != null) {
+                tdImage.appendChild(narDom.img(treatment.getProductImageFront(), this.getMessage("MEDICATION_IMAGE", lang)));
+            }
+
+            if (treatment.getProductImageBack() != null) {
+                tdImage.appendChild(narDom.img(treatment.getProductImageBack(), this.getMessage("MEDICATION_IMAGE", lang)));
+            }
+            cells.add(tdImage);
 
             // Dosage instructions (5 columns)
             cells.addAll(this.formatDosageCells(narDom, treatment));

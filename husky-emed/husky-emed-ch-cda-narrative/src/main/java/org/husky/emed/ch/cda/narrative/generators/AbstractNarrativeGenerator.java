@@ -28,6 +28,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAccessor;
 import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * Abstract base for narrative generators.
@@ -115,9 +116,15 @@ public abstract class AbstractNarrativeGenerator {
 
             final var formCode = item.getProductFormCode();
 
-            final var dose = narDom.text(String.join("/", item.getProductIngredients().stream()
-                    .map(NarrativeTreatmentIngredient::getQuantityValue)
-                    .toList()) + item.getProductDoseUnit());
+            final var doseQuantities = String.join("/", item.getProductIngredients().stream()
+                    .map(NarrativeTreatmentIngredient::getQuantity)
+                    .toList());
+
+            final var doseUnits = item.getProductIngredients().stream()
+                    .map(NarrativeTreatmentIngredient::getUnit)
+                    .distinct()
+                    .toList();
+
 
             List<Node> nodeMedicationName = new ArrayList<>(List.of(
                     narDom.link(url, name, StringUtils.capitalize(this.getMessage("SEE_MEDICINE", lang)), null),
@@ -126,7 +133,9 @@ public abstract class AbstractNarrativeGenerator {
 
             if (!item.getProductIngredients().isEmpty()) {
                 nodeMedicationName.add(narDom.text(" - "));
-                nodeMedicationName.add(dose);
+                if (doseUnits.size() == 1) {
+                    nodeMedicationName.add(narDom.text(doseQuantities + doseUnits.get(0)));
+                }
             }
 
             return nodeMedicationName;
