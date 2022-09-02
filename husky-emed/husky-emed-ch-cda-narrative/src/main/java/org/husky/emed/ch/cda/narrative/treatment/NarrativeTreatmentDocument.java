@@ -31,6 +31,11 @@ import java.util.Objects;
 public class NarrativeTreatmentDocument {
 
     /**
+     * The language to use to generate the narrative text.
+     */
+    private final NarrativeLanguage narrativeLanguage;
+
+    /**
      * The type of document
      */
     private final CceDocumentType documentType;
@@ -95,6 +100,7 @@ public class NarrativeTreatmentDocument {
      * @param builder the builder
      */
     private NarrativeTreatmentDocument(NarrativeTreatmentDocumentBuilder builder) {
+        this.narrativeLanguage = Objects.requireNonNull(builder.narrativeLanguage);
         this.documentType = Objects.requireNonNull(builder.documentType);
         this.creationTime = Objects.requireNonNull(builder.creationTime);
         this.documentationTime = Objects.requireNonNull(builder.documentationTime);
@@ -119,6 +125,9 @@ public class NarrativeTreatmentDocument {
     public static NarrativeTreatmentDocumentBuilder builder(NarrativeLanguage narrativeLanguage) throws IOException {
         return new NarrativeTreatmentDocumentBuilder(narrativeLanguage);
     }
+
+    @NonNull
+    public NarrativeLanguage getNarrativeLanguage() { return this.narrativeLanguage; }
 
     @NonNull
     public CceDocumentType getDocumentType() {

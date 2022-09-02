@@ -1,11 +1,17 @@
 package org.husky.emed.ch.cda.narrative.services;
 
-import org.checkerframework.checker.nullness.qual.Nullable;
+import org.apache.commons.io.IOUtils;
+import org.apache.xerces.impl.dv.util.Base64;
+import org.husky.emed.ch.cda.narrative.enums.NarrativeLanguage;
 import org.husky.emed.ch.cda.narrative.enums.ProductCodeType;
 import org.husky.emed.ch.cda.narrative.treatment.NarrativeTreatmentIngredient;
 import org.husky.emed.ch.cda.narrative.treatment.NarrativeTreatmentItem;
 import org.husky.emed.ch.enums.RouteOfAdministrationEdqm;
 
+import javax.imageio.ImageIO;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -36,16 +42,36 @@ public class IndexDbAugmentationService {
 
     /**
      * Adds information to the item using the INDEX database
-     * @param item
+     * @param item the narrative item to be improved
      */
-    public void augment(NarrativeTreatmentItem item) {
+    public void augment(NarrativeTreatmentItem item, NarrativeLanguage lang) {
         if (item.getCodeType() == ProductCodeType.GTIN) {
+            final String gtin = item.getProductCode();
+
             if (item.getRouteOfAdministration() == null) {
-                // get route administration
+                Optional<RouteOfAdministrationEdqm> roa = this.getRouteOfAdministration(gtin);
+                if (roa.isPresent()) {
+                    try {
+                        ValueSetEnumNarrativeForPatientService valueSetEnumNarrative = new ValueSetEnumNarrativeForPatientService();
+                        item.setRouteOfAdministration(valueSetEnumNarrative.getMessage(roa.get(), lang));
+                    } catch (IOException e) {
+                        item.setRouteOfAdministration(roa.get().getDisplayName(lang.getLanguageCode()));
+                    }
+                }
             }
 
             if (item.getProductIngredients().size() == 0) {
-                // get the active ingredients
+                List<NarrativeTreatmentIngredient> activeIngredients = this.getActiveIngredients(gtin);
+                item.setProductIngredients(activeIngredients);
+            }
+
+            this.getProductName(gtin).ifPresent(item::setProductName);
+
+            if (this.hasProductImage(gtin)) {
+                this.getImage(String.format("https://index.hcisolutions.ch/files/pics/%s_PIF_F.jpg?key=gtin", gtin))
+                        .ifPresent(item::setProductImageFront);
+                this.getImage(String.format("https://index.hcisolutions.ch/files/pics/%s_PIB_F.jpg?key=gtin", gtin))
+                        .ifPresent(item::setProductImageBack);
             }
         }
     }
@@ -134,6 +160,41 @@ public class IndexDbAugmentationService {
             return hasProductImage;
         } catch (SQLException e) {
             return false;
+        }
+    }
+
+    /**
+     * Gets the name of medicine
+     * @param gtin the medicine's gtin
+     * @return the medicine's name
+     */
+    private Optional<String> getProductName(String gtin) {
+        String sqlSelectName = "SELECT PRODUCT.BNAMF AS BRAND, PRODUCT.ADNAMF AS ADNAME FROM ARTICLE INNER JOIN PRODUCT ON ARTICLE.PRDNO = PRODUCT.PRDNO WHERE ARTICLE.GTIN = ? LIMIT 1";
+
+        try(Connection conn = this.getConnection()) {
+            PreparedStatement ps = conn.prepareStatement(sqlSelectName);
+            ps.setString(1, gtin);
+
+            ResultSet rs = ps.executeQuery();
+            rs.next();
+
+            String brand = rs.getString("BRAND");
+            String restName = rs.getString("ADNAME");
+            return Optional.of(String.format("%s %s", brand, restName));
+
+        } catch (SQLException e) {
+            return Optional.empty();
+        }
+    }
+
+    private Optional<String> getImage(String url) {
+        try {
+            InputStream inputStream = new URL(url).openStream();
+            String b64Img = Base64.encode(IOUtils.toByteArray(inputStream));
+            inputStream.close();
+            return Optional.of("data:image/png;base64," + b64Img);
+        } catch (IOException e) {
+            return Optional.empty();
         }
     }
 }

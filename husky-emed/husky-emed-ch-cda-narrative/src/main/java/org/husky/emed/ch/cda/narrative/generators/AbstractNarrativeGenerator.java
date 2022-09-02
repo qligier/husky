@@ -125,11 +125,13 @@ public abstract class AbstractNarrativeGenerator {
                     .distinct()
                     .toList();
 
-
             List<Node> nodeMedicationName = new ArrayList<>(List.of(
                     narDom.link(url, name, StringUtils.capitalize(this.getMessage("SEE_MEDICINE", lang)), null),
                     narDom.br()));
-            nodeMedicationName.add(narDom.text(formCode));
+
+            if (formCode != null) {
+                nodeMedicationName.add(narDom.text(formCode));
+            }
 
             if (!item.getProductIngredients().isEmpty()) {
                 nodeMedicationName.add(narDom.text(" - "));
@@ -182,20 +184,20 @@ public abstract class AbstractNarrativeGenerator {
         try {
              b64 = switch (timing) {
                 case MORNING:
-                    yield AbstractNarrativeGenerator.class.getResourceAsStream("/narrative/default/icons/sunrise.png").readAllBytes();
+                    yield AbstractNarrativeGenerator.class.getResourceAsStream("/narrative/default/icons/sunrise.svg").readAllBytes();
                 case NOON:
-                    yield AbstractNarrativeGenerator.class.getResourceAsStream("/narrative/default/icons/brightness-high.png").readAllBytes();
+                    yield AbstractNarrativeGenerator.class.getResourceAsStream("/narrative/default/icons/brightness-high.svg").readAllBytes();
                 case EVENING:
-                    yield AbstractNarrativeGenerator.class.getResourceAsStream("/narrative/default/icons/sunset.png").readAllBytes();
+                    yield AbstractNarrativeGenerator.class.getResourceAsStream("/narrative/default/icons/sunset.svg").readAllBytes();
                 case NIGHT:
-                    yield AbstractNarrativeGenerator.class.getResourceAsStream("/narrative/default/icons/moon.png").readAllBytes();
+                    yield AbstractNarrativeGenerator.class.getResourceAsStream("/narrative/default/icons/moon.svg").readAllBytes();
             };
         } catch (Exception e) {
             b64 = null;
         }
 
         if (b64 != null) {
-            dosageThNode.appendChild(narDom.img("data:image/png;base64," + Base64.getEncoder().encodeToString(b64), this.valueSetEnumNarrativeForPatientService.getMessage(timing, lang)));
+            dosageThNode.appendChild(narDom.img("data:image/svg+xml;base64," + Base64.getEncoder().encodeToString(b64), this.valueSetEnumNarrativeForPatientService.getMessage(timing, lang)));
         }
         dosageThNode.appendChild(narDom.br());
         dosageThNode.appendChild(narDom.text(StringUtils.capitalize(this.valueSetEnumNarrativeForPatientService.getMessage(timing, lang))));

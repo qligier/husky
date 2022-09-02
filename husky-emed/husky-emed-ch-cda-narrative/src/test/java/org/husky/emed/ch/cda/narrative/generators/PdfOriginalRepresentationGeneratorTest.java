@@ -3,6 +3,7 @@ package org.husky.emed.ch.cda.narrative.generators;
 import org.husky.common.hl7cdar2.POCDMT000040ClinicalDocument;
 import org.husky.common.utils.xml.XmlFactories;
 import org.husky.emed.ch.cda.digesters.CceDocumentDigester;
+import org.husky.emed.ch.cda.narrative.services.IndexDbAugmentationService;
 import org.husky.emed.ch.cda.narrative.treatment.NarrativeTreatmentDocument;
 import org.husky.emed.ch.cda.narrative.enums.NarrativeLanguage;
 import org.husky.emed.ch.cda.services.EmedEntryDigestService;
@@ -50,10 +51,15 @@ class PdfOriginalRepresentationGeneratorTest {
                 .emedDocumentDigest(digest)
                 .build();
 
+        IndexDbAugmentationService indexDbAugmentationService = new IndexDbAugmentationService("jdbc:mysql://localhost:3306/INDEX", "root", "root");
+        for (var i : doc.getActiveTreatments()) {
+            indexDbAugmentationService.augment(i, doc.getNarrativeLanguage());
+        }
+
         final var templateHeader = new String(Objects.requireNonNull(PdfOriginalRepresentationGenerator.class.getResourceAsStream("/narrative/default/template.header.html")).readAllBytes(), StandardCharsets.UTF_8);
 
         PdfOriginalRepresentationGenerator pdfGenerator = new PdfOriginalRepresentationGenerator();
-        var pdf = pdfGenerator.generate(doc, NarrativeLanguage.FRENCH, templateHeader, "</body></html>");
+        var pdf = pdfGenerator.generate(doc, templateHeader, "</body></html>");
 
         OutputStream pdfOut = new FileOutputStream("pdtOut.pdf");
         pdfOut.write(pdf);

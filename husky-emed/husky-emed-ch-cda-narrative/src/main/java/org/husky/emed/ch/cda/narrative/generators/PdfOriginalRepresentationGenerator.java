@@ -92,24 +92,20 @@ public class PdfOriginalRepresentationGenerator extends AbstractNarrativeGenerat
      * @param document
      * @return
      */
-    public byte[] generate(final NarrativeTreatmentDocument document,
-                           final NarrativeLanguage lang) throws Exception {
-        return this.generate(document, lang, null, null);
+    public byte[] generate(final NarrativeTreatmentDocument document) throws Exception {
+        return this.generate(document, null, null);
     }
 
     /**
      * @param document
-     * @param lang           The language to use to generate the narrative text.
      * @param templateHeader The HTML template header (before the main content).
      * @param templateFooter The HTML template footer (after the main content).
      * @return
      */
     public byte[] generate(final NarrativeTreatmentDocument document,
-                           final NarrativeLanguage lang,
                            @Nullable String templateHeader,
                            @Nullable String templateFooter) throws Exception {
         Objects.requireNonNull(document, "digest shall not be null in generate()");
-        Objects.requireNonNull(lang, "lang shall not be null in generate()");
 
         if (templateHeader == null) {
             try (final var is = this.getResourceAsStream("/narrative/default/template.header.html")) {
@@ -122,9 +118,10 @@ public class PdfOriginalRepresentationGenerator extends AbstractNarrativeGenerat
 
         final var narDom = new NarrativeDomFactory(true);
         final var root = narDom.getDocument().getDocumentElement();
+        final NarrativeLanguage lang = document.getNarrativeLanguage();
 
         // Document title & Patient's personal data
-        root.appendChild(this.formatHeader(narDom, document, lang));
+        root.appendChild(this.formatHeader(narDom, document));
 
         // Last version
         root.appendChild(narDom.p(StringUtils.capitalize(this.getMessage("LAST_VERSION", lang)) + " " + document.getDocumentationTime()));
@@ -182,7 +179,7 @@ public class PdfOriginalRepresentationGenerator extends AbstractNarrativeGenerat
             cells.add(narDom.td(this.formatMedicationName(narDom, treatment, lang), "col name"));
 
             // Medication image
-            var tdImage = narDom.td(null, null);
+            var tdImage = narDom.td(null, "medication-image");
             if (treatment.getProductImageFront() != null) {
                 tdImage.appendChild(narDom.img(treatment.getProductImageFront(), this.getMessage("MEDICATION_IMAGE", lang)));
             }
@@ -229,8 +226,8 @@ public class PdfOriginalRepresentationGenerator extends AbstractNarrativeGenerat
             // Comments
             if (treatment.getAnnotationComment() != null) {
                 var td = narDom.td(null, "comments", null, "10");
-                byte[] infoCircle = this.getResourceAsStream("/narrative/default/icons/info-circle.png").readAllBytes();
-                td.appendChild(narDom.img("data:image/png;base64," + Base64.getEncoder().encodeToString(infoCircle), this.getMessage("COMMENT", lang)));
+                byte[] infoCircle = this.getResourceAsStream("/narrative/default/icons/info-circle.svg").readAllBytes();
+                td.appendChild(narDom.img("data:image/svg+xml;base64," + Base64.getEncoder().encodeToString(infoCircle), this.getMessage("COMMENT", lang)));
                 td.appendChild(narDom.text(treatment.getAnnotationComment()));
 
                 medicationTableRows.add(narDom.tr(td, null));
@@ -354,15 +351,14 @@ public class PdfOriginalRepresentationGenerator extends AbstractNarrativeGenerat
      * Gets information of the header
      * @param narDom
      * @param document
-     * @param lang
      * @return the header
      */
-    Element formatHeader(NarrativeDomFactory narDom, NarrativeTreatmentDocument document, NarrativeLanguage lang) {
+    Element formatHeader(NarrativeDomFactory narDom, NarrativeTreatmentDocument document) {
         var tr = narDom.tr(null, null);
-        tr.appendChild(narDom.td(narDom.title1(StringUtils.capitalize(this.getMessage("TITLE", lang)), "title"), null));
+        tr.appendChild(narDom.td(narDom.title1(StringUtils.capitalize(this.getMessage("TITLE", document.getNarrativeLanguage())), "title"), null));
         tr.appendChild(narDom.td(this.formatPatientPersonalData(narDom, document), null));
         var tdAuthor = narDom.td(null, null);
-        tdAuthor.appendChild(narDom.title3(StringUtils.capitalize(this.getMessage("AUTHOR_DOCUMENT", lang)), null));
+        tdAuthor.appendChild(narDom.title3(StringUtils.capitalize(this.getMessage("AUTHOR_DOCUMENT", document.getNarrativeLanguage())), null));
         tdAuthor.appendChild(this.formatAuthorName(narDom, document.getAuthor1()));
 
         tr.appendChild(tdAuthor);
