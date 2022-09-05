@@ -110,7 +110,7 @@ public abstract class AbstractNarrativeGenerator {
         final var name = item.getProductName();
 
         final var gtinOrAtcCode = item.getProductCode();
-        // TODO: or ATC
+
         if (item.getCodeType() == ProductCodeType.GTIN) {
             final var url = "https://compendium.ch/search/setculture/fr-CH?backUrl=https://compendium.ch/search?q=" + gtinOrAtcCode;
 
@@ -142,8 +142,6 @@ public abstract class AbstractNarrativeGenerator {
 
             return nodeMedicationName;
         }
-
-
 
         return List.of(narDom.text(name));
     }
@@ -184,20 +182,20 @@ public abstract class AbstractNarrativeGenerator {
         try {
              b64 = switch (timing) {
                 case MORNING:
-                    yield AbstractNarrativeGenerator.class.getResourceAsStream("/narrative/default/icons/sunrise.svg").readAllBytes();
+                    yield AbstractNarrativeGenerator.class.getResourceAsStream("/narrative/default/icons/sunrise.png").readAllBytes();
                 case NOON:
-                    yield AbstractNarrativeGenerator.class.getResourceAsStream("/narrative/default/icons/brightness-high.svg").readAllBytes();
+                    yield AbstractNarrativeGenerator.class.getResourceAsStream("/narrative/default/icons/brightness-high.png").readAllBytes();
                 case EVENING:
-                    yield AbstractNarrativeGenerator.class.getResourceAsStream("/narrative/default/icons/sunset.svg").readAllBytes();
+                    yield AbstractNarrativeGenerator.class.getResourceAsStream("/narrative/default/icons/sunset.png").readAllBytes();
                 case NIGHT:
-                    yield AbstractNarrativeGenerator.class.getResourceAsStream("/narrative/default/icons/moon.svg").readAllBytes();
+                    yield AbstractNarrativeGenerator.class.getResourceAsStream("/narrative/default/icons/moon.png").readAllBytes();
             };
         } catch (Exception e) {
             b64 = null;
         }
 
         if (b64 != null) {
-            dosageThNode.appendChild(narDom.img("data:image/svg+xml;base64," + Base64.getEncoder().encodeToString(b64), this.valueSetEnumNarrativeForPatientService.getMessage(timing, lang)));
+            dosageThNode.appendChild(narDom.img("data:image/png;base64," + Base64.getEncoder().encodeToString(b64), this.valueSetEnumNarrativeForPatientService.getMessage(timing, lang)));
         }
         dosageThNode.appendChild(narDom.br());
         dosageThNode.appendChild(narDom.text(StringUtils.capitalize(this.valueSetEnumNarrativeForPatientService.getMessage(timing, lang))));

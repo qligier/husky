@@ -1,7 +1,6 @@
 package org.husky.emed.ch.cda.narrative.treatment;
 
 import lombok.NonNull;
-import lombok.Setter;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.husky.emed.ch.cda.narrative.enums.NarrativeLanguage;
 import org.husky.emed.ch.cda.narrative.enums.ProductCodeType;
@@ -205,10 +204,7 @@ public class NarrativeTreatmentItem {
         this.fulfilmentInstructions = builder.fulfilmentInstructions;
         this.inReserve = builder.inReserve;
         this.annotationComment = builder.annotationComment;
-
-        try {
-            this.productIcon = "data:image/svg+xml;base64," + Base64.getEncoder().encodeToString(Objects.requireNonNull(NarrativeTreatmentItem.class.getResourceAsStream("/narrative/default/icons/capsule-pill.svg")).readAllBytes());
-        } catch (IOException ignored) {}
+        this.productIcon = builder.productIcon;
         this.productImageFront = builder.productImageFront;
         this.productImageBack = builder.productImageBack;
 
@@ -493,6 +489,20 @@ public class NarrativeTreatmentItem {
 
         public NarrativeTreatmentItemBuilder productFormCode(PharmaceuticalDoseFormEdqm formCode) {
             this.productFormCode = this.valueSetEnumNarrative.getMessage(formCode, this.narrativeLanguage);
+
+            String iconPath = switch (formCode) {
+                case GEL -> "/narrative/default/icons/droplet.png";
+                case CREAM -> "/narrative/default/icons/tube.png";
+                case INHALATION_POWDER -> "/narrative/default/icons/inhaler.png";
+                case NASAL_SPRAY_SOLUTION -> "/narrative/default/icons/nasal-spray.png";
+                case OROMUCOSAL_LARYNGOPHARYNGEAL_SOLUTION_SPRAY_SOLUTION -> "/narrative/default/icons/oral-spray.png";
+                default ->  "/narrative/default/icons/capsule-pill.png";
+            };
+
+            try {
+                this.productIcon("data:image/png;base64," + Base64.getEncoder().encodeToString(NarrativeTreatmentItem.class.getResourceAsStream(iconPath).readAllBytes()));
+            } catch (IOException ignored) {}
+
             return this;
         }
 

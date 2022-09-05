@@ -292,7 +292,15 @@ public class NarrativeTreatmentDocument {
         }
 
         public NarrativeTreatmentDocumentBuilder patientContact(TelecomDigest contact) {
-            this.patientContact = "TO BE DEFINED";
+            String c = "";
+            if (!contact.getMails().isEmpty()) {
+                c += contact.getMails().get(0);
+            }
+
+            if (!contact.getPhones().isEmpty()) {
+                c += contact.getPhones().get(0);
+            }
+            this.patientContact = c;
             return this;
         }
 

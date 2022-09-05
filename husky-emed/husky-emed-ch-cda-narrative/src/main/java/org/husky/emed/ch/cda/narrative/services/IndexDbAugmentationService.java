@@ -67,12 +67,12 @@ public class IndexDbAugmentationService {
 
             this.getProductName(gtin).ifPresent(item::setProductName);
 
-            if (this.hasProductImage(gtin)) {
+//            if (this.hasProductImage(gtin)) {
                 this.getImage(String.format("https://index.hcisolutions.ch/files/pics/%s_PIF_F.jpg?key=gtin", gtin))
                         .ifPresent(item::setProductImageFront);
                 this.getImage(String.format("https://index.hcisolutions.ch/files/pics/%s_PIB_F.jpg?key=gtin", gtin))
                         .ifPresent(item::setProductImageBack);
-            }
+//            }
         }
     }
 
