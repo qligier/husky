@@ -8,7 +8,6 @@ import org.husky.emed.ch.cda.narrative.treatment.NarrativeTreatmentIngredient;
 import org.husky.emed.ch.cda.narrative.treatment.NarrativeTreatmentItem;
 import org.husky.emed.ch.enums.RouteOfAdministrationEdqm;
 
-import javax.imageio.ImageIO;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;

@@ -116,6 +116,10 @@ public abstract class AbstractNarrativeGenerator {
 
             final var formCode = item.getProductFormCode();
 
+            final var ingredients = String.join(",", item.getProductIngredients().stream()
+                    .map(NarrativeTreatmentIngredient::getName)
+                    .toList());
+
             final var doseQuantities = String.join("/", item.getProductIngredients().stream()
                     .map(NarrativeTreatmentIngredient::getQuantity)
                     .toList());
@@ -134,7 +138,8 @@ public abstract class AbstractNarrativeGenerator {
             }
 
             if (!item.getProductIngredients().isEmpty()) {
-                nodeMedicationName.add(narDom.text(" - "));
+                nodeMedicationName.add(narDom.br());
+                nodeMedicationName.add(narDom.text(ingredients + " - "));
                 if (doseUnits.size() == 1) {
                     nodeMedicationName.add(narDom.text(doseQuantities + doseUnits.get(0)));
                 }
@@ -150,15 +155,15 @@ public abstract class AbstractNarrativeGenerator {
                                   final List<Element> bodyRows,
                                   final NarrativeLanguage lang) {
         final var theadRow1 = narDom.tr(null, null);
-        theadRow1.appendChild(narDom.th(StringUtils.capitalize(this.getMessage("PACKAGE_NAME", lang)), null, "3"));
-        theadRow1.appendChild(narDom.th(formatDosageTh(narDom, TimingEventAmbu.MORNING, lang), null, null));
-        theadRow1.appendChild(narDom.th(formatDosageTh(narDom, TimingEventAmbu.NOON, lang), null, null));
-        theadRow1.appendChild(narDom.th(formatDosageTh(narDom, TimingEventAmbu.EVENING, lang), null, null));
-        theadRow1.appendChild(narDom.th(formatDosageTh(narDom, TimingEventAmbu.NIGHT, lang), null, null));
-        theadRow1.appendChild(narDom.th(StringUtils.capitalize(this.getMessage("DOSE_UNIT", lang)), null, null));
-        theadRow1.appendChild(narDom.th(StringUtils.capitalize(this.getMessage("DATE_FROM_TO", lang)), null, null));
-        theadRow1.appendChild(narDom.th(StringUtils.capitalize(this.getMessage("REASON", lang)), null, null));
-        theadRow1.appendChild(narDom.th(StringUtils.capitalize(this.getMessage("PRESCRIBED_BY", lang)), null, null));
+        theadRow1.appendChild(narDom.th(StringUtils.capitalize(this.getMessage("PACKAGE_NAME", lang)), null, "3", null));
+        theadRow1.appendChild(narDom.th(formatDosageTh(narDom, TimingEventAmbu.MORNING, lang), null, null, "th-timing"));
+        theadRow1.appendChild(narDom.th(formatDosageTh(narDom, TimingEventAmbu.NOON, lang), null, null, "th-timing"));
+        theadRow1.appendChild(narDom.th(formatDosageTh(narDom, TimingEventAmbu.EVENING, lang), null, null, "th-timing"));
+        theadRow1.appendChild(narDom.th(formatDosageTh(narDom, TimingEventAmbu.NIGHT, lang), null, null, "th-timing"));
+        theadRow1.appendChild(narDom.th(StringUtils.capitalize(this.getMessage("DOSE_UNIT", lang)), null, null, null));
+        theadRow1.appendChild(narDom.th(StringUtils.capitalize(this.getMessage("DATE_FROM_TO", lang)), null, null, null));
+        theadRow1.appendChild(narDom.th(StringUtils.capitalize(this.getMessage("REASON", lang)), null, null, null));
+        theadRow1.appendChild(narDom.th(StringUtils.capitalize(this.getMessage("PRESCRIBED_BY", lang)), null, null, null));
 
         final var thead = narDom.thead();
         thead.appendChild(theadRow1);

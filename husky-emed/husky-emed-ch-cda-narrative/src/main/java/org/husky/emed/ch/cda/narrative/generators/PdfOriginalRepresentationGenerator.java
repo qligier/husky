@@ -292,7 +292,7 @@ public class PdfOriginalRepresentationGenerator extends AbstractNarrativeGenerat
     List<Element> formatDosageCells(final NarrativeDomFactory narDom,
                                     final NarrativeTreatmentItem item) {
         if (item.getNarrativeDosageInstructions() != null) {
-            final var td = narDom.td(item.getNarrativeDosageInstructions(), "col dosage border-top");
+            final var td = narDom.td(item.getNarrativeDosageInstructions(), "col border-top");
             td.setAttribute("colspan", "5");
             return List.of(td);
         }
@@ -318,10 +318,9 @@ public class PdfOriginalRepresentationGenerator extends AbstractNarrativeGenerat
      */
     Element displayQuantity(NarrativeDomFactory narDom, @Nullable String quantity) {
         if (quantity == null || quantity.equals("")) {
-            return narDom.td("0", "text-center border-top");
-        } else {
-            return narDom.td(narDom.text(quantity), "text-center border-top");
+            quantity = "0";
         }
+        return narDom.td(quantity, "text-center th-timing border-top");
     }
 
     /**

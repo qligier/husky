@@ -237,7 +237,8 @@ public class NarrativeDomFactory {
 
     public Element th(@Nullable final Object content,
                       @Nullable final String rowspan,
-                      @Nullable final String colspan) {
+                      @Nullable final String colspan,
+                      @Nullable final String htmlClass) {
         final var th = this.element("th");
         this.setNodeContent(th, content);
         if (rowspan != null) {
@@ -245,6 +246,10 @@ public class NarrativeDomFactory {
         }
         if (colspan != null) {
             th.setAttribute("colspan", colspan);
+        }
+
+        if (htmlClass != null && this.isHtml) {
+            th.setAttribute("class", htmlClass);
         }
         return th;
     }
