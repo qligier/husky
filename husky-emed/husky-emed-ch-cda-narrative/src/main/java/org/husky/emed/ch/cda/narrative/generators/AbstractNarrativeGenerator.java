@@ -107,7 +107,7 @@ public abstract class AbstractNarrativeGenerator {
     List<Node> formatMedicationName(final NarrativeDomFactory narDom,
                                     final NarrativeTreatmentItem item,
                                     final NarrativeLanguage lang) {
-        final var name = item.getProductName();
+        final var name = StringUtils.capitalize(item.getProductName());
 
         final var gtinOrAtcCode = item.getProductCode();
 

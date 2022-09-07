@@ -47,18 +47,18 @@ public class IndexDbAugmentationService {
         if (item.getCodeType() == ProductCodeType.GTIN) {
             final String gtin = item.getProductCode();
 
-            if (item.getRouteOfAdministration() == null) {
-                Optional<RouteOfAdministrationEdqm> roa = this.getRouteOfAdministration(gtin);
-                if (roa.isPresent()) {
-                    try {
-                        ValueSetEnumNarrativeForPatientService valueSetEnumNarrative = new ValueSetEnumNarrativeForPatientService();
-                        item.setRouteOfAdministration(valueSetEnumNarrative.getMessage(roa.get(), lang));
-                    } catch (IOException e) {
-                        item.setRouteOfAdministration(roa.get().getDisplayName(lang.getLanguageCode()));
-                    }
-                }
-            }
-
+//            if (item.getRouteOfAdministration() == null) {
+//                Optional<RouteOfAdministrationEdqm> roa = this.getRouteOfAdministration(gtin);
+//                if (roa.isPresent()) {
+//                    try {
+//                        ValueSetEnumNarrativeForPatientService valueSetEnumNarrative = new ValueSetEnumNarrativeForPatientService();
+//                        item.setRouteOfAdministration(valueSetEnumNarrative.getMessage(roa.get(), lang));
+//                    } catch (IOException e) {
+//                        item.setRouteOfAdministration(roa.get().getDisplayName(lang.getLanguageCode()));
+//                    }
+//                }
+//            }
+//
             if (item.getProductIngredients().size() == 0) {
                 List<NarrativeTreatmentIngredient> activeIngredients = this.getActiveIngredients(gtin);
                 item.setProductIngredients(activeIngredients);
@@ -118,7 +118,21 @@ public class IndexDbAugmentationService {
      * @return The list with the active ingredient
      */
     private List<NarrativeTreatmentIngredient> getActiveIngredients(String gtin) {
-        String sqlSelectActiveIngredient = "SELECT SUBSTANCE.NAMF AS NAME, PRODUCT.QTY as QTY, PRODUCT.QTYU as QTYU FROM (ARTICLE INNER JOIN PRODUCT ON ARTICLE.PRDNO = PRODUCT.PRDNO) INNER JOIN SUBSTANCE ON PRODUCT.SUBNO = SUBSTANCE.SUBNO WHERE ARTICLE.GTIN = ? AND PRODUCT.WHK = 'W'";
+        String sqlSelectActiveIngredient = """
+        SELECT ms.name_fr, mcs.qty, mcs.qty_unit
+        FROM med_article AS ma\s
+            INNER JOIN med_barcode AS mb
+                ON ma.pharmacode = mb.pharmacode
+            INNER JOIN med_product AS mp
+                ON ma.product_no = mp.product_no
+            INNER JOIN med_component AS mcn
+                ON mcn.product_no = mp.product_no
+            INNER JOIN med_composition AS mcs
+                ON mcs.component_line_no = mcn.line_no
+                AND mcs.product_no = mcn.product_no
+            INNER JOIN med_substance AS ms
+                ON ms.substance_no = mcs.substance_no
+        WHERE mb.barcode = ? AND mcs.substance_type = 'W'""";
 
         try(Connection conn = this.getConnection()) {
             PreparedStatement ps = conn.prepareStatement(sqlSelectActiveIngredient);
@@ -127,9 +141,9 @@ public class IndexDbAugmentationService {
             ResultSet rs = ps.executeQuery();
             var activeIngredients = new ArrayList<NarrativeTreatmentIngredient>();
             while (rs.next()) {
-                String substanceName = rs.getString("NAME");
-                String substanceQty = rs.getString("QTY");
-                String substanceUnit = rs.getString("QTYU");
+                String substanceName = rs.getString("name_fr");
+                String substanceQty = rs.getString("qty");
+                String substanceUnit = rs.getString("qty_unit");
                 activeIngredients.add(new NarrativeTreatmentIngredient(substanceName, substanceQty, substanceUnit));
             }
             return activeIngredients;
@@ -168,7 +182,14 @@ public class IndexDbAugmentationService {
      * @return the medicine's name
      */
     private Optional<String> getProductName(String gtin) {
-        String sqlSelectName = "SELECT PRODUCT.BNAMF AS BRAND, PRODUCT.ADNAMF AS ADNAME FROM ARTICLE INNER JOIN PRODUCT ON ARTICLE.PRDNO = PRODUCT.PRDNO WHERE ARTICLE.GTIN = ? LIMIT 1";
+        String sqlSelectName = """
+            SELECT mp.base_name_fr, mp.name_complement_fr
+            FROM med_article AS ma\s
+                INNER JOIN med_barcode AS mb
+                    ON ma.pharmacode = mb.pharmacode
+                INNER JOIN med_product AS mp
+                    ON ma.product_no = mp.product_no
+            WHERE mb.barcode = ?""";
 
         try(Connection conn = this.getConnection()) {
             PreparedStatement ps = conn.prepareStatement(sqlSelectName);
@@ -177,9 +198,13 @@ public class IndexDbAugmentationService {
             ResultSet rs = ps.executeQuery();
             rs.next();
 
-            String brand = rs.getString("BRAND");
-            String restName = rs.getString("ADNAME");
-            return Optional.of(String.format("%s %s", brand, restName));
+            String baseName = rs.getString("base_name_fr");
+            String complement_name = rs.getString("name_complement_fr");
+
+            if (complement_name == null) {
+                return Optional.of(baseName);
+            }
+            return Optional.of(String.format("%s %s", baseName, complement_name));
 
         } catch (SQLException e) {
             return Optional.empty();

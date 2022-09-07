@@ -179,7 +179,7 @@ public class PdfOriginalRepresentationGenerator extends AbstractNarrativeGenerat
             cells.add(narDom.td(this.formatMedicationName(narDom, treatment, lang), "col name border-top"));
 
             // Medication image
-            var tdImage = narDom.td(null, "medication-image border-top");
+            var tdImage = narDom.td(null, "medication-image border-top text-center");
             if (treatment.getProductImageFront() != null) {
                 tdImage.appendChild(narDom.img(treatment.getProductImageFront(), this.getMessage("MEDICATION_IMAGE", lang)));
             }

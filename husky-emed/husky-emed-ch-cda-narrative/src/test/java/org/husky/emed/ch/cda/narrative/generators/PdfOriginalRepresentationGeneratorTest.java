@@ -51,7 +51,7 @@ class PdfOriginalRepresentationGeneratorTest {
                 .emedDocumentDigest(digest)
                 .build();
 
-        IndexDbAugmentationService indexDbAugmentationService = new IndexDbAugmentationService("jdbc:mysql://localhost:3306/INDEX", "root", "root");
+        IndexDbAugmentationService indexDbAugmentationService = new IndexDbAugmentationService("jdbc:postgresql://localhost:5432/swissmeds_o", "postgres", "root");
         for (var i : doc.getActiveTreatments()) {
             indexDbAugmentationService.augment(i, doc.getNarrativeLanguage());
         }
