@@ -39,7 +39,6 @@ class PdfOriginalRepresentationGeneratorTest {
         UNMARSHALLER = context.createUnmarshaller();
     }
 
-    @Test
     void testGeneratePdf() throws Exception {
         final var emedEntryDigestServiceImpl = new EmedEntryDigestServiceImpl();
         final var digester = new CceDocumentDigester(emedEntryDigestServiceImpl);

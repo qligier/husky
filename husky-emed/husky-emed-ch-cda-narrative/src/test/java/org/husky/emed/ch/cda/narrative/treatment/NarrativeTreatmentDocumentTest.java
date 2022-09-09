@@ -43,10 +43,10 @@ class NarrativeTreatmentDocumentTest {
                 .emedDocumentDigest(digest)
                 .build();
 
-        assertEquals("Familien Hausarzt", document.getAuthor1().getName());
-        assertEquals("Hausarzt", document.getAuthor1().getOrganization());
-        assertNull(document.getAuthor1().getAddress());
-        assertEquals(document.getAuthor1(), document.getAuthor2());
+        assertEquals("Familien Hausarzt", document.getLastMedicalAuthor().getName());
+        assertEquals("Hausarzt", document.getLastMedicalAuthor().getOrganization());
+        assertNull(document.getLastMedicalAuthor().getAddress());
+        assertEquals(document.getLastMedicalAuthor(), document.getLastInterveningAuthor());
         assertEquals(CceDocumentType.PMLC, document.getDocumentType());
         assertEquals("01.01.2022 11:34:00", document.getCreationTime());
         assertEquals("29.11.2011 11:00:00", document.getDocumentationTime());

@@ -61,14 +61,15 @@ public class NarrativeTreatmentDocument {
     private final List<NarrativeTreatmentItem> recentTreatments;
 
     /**
-     * The author of document
+     * The author of the last item entry (of any kind) in this treatment. This is the last intervening.
      */
-    private final NarrativeTreatmentAuthor author1;
+    private final NarrativeTreatmentAuthor lastInterveningAuthor;
 
     /**
-     * The last medical author of document
+     * The author of the last item entry (of type MTP, PRE, or any type of PADV except COMMENT that apply to an MTP
+     * or PRE) in this treatment. This is the last "medical" participant.
      */
-    private final NarrativeTreatmentAuthor author2;
+    private final NarrativeTreatmentAuthor lastMedicalAuthor;
 
     /**
      * The name of patient
@@ -106,8 +107,8 @@ public class NarrativeTreatmentDocument {
         this.documentationTime = Objects.requireNonNull(builder.documentationTime);
         this.activeTreatments = Objects.requireNonNull(builder.activeTreatments);
         this.recentTreatments = Objects.requireNonNull(builder.recentTreatments);
-        this.author1 = Objects.requireNonNull(builder.author1);
-        this.author2 = Objects.requireNonNull(builder.author2);
+        this.lastInterveningAuthor = Objects.requireNonNull(builder.lastInterveningAuthor);
+        this.lastMedicalAuthor = Objects.requireNonNull(builder.lastMedicalAuthor);
         this.patientName = Objects.requireNonNull(builder.patientName);
         this.patientGender = Objects.requireNonNull(builder.patientGender);
         this.patientBirthDate = Objects.requireNonNull(builder.patientBirthDate);
@@ -155,14 +156,10 @@ public class NarrativeTreatmentDocument {
     }
 
     @NonNull
-    public NarrativeTreatmentAuthor getAuthor1() {
-        return this.author1;
-    }
+    public NarrativeTreatmentAuthor getLastInterveningAuthor() { return lastInterveningAuthor; }
 
     @NonNull
-    public NarrativeTreatmentAuthor getAuthor2() {
-        return this.author2;
-    }
+    public NarrativeTreatmentAuthor getLastMedicalAuthor() { return lastMedicalAuthor; }
 
     @NonNull
     public String getPatientName() {
@@ -198,8 +195,8 @@ public class NarrativeTreatmentDocument {
         private String documentationTime;
         private final List<NarrativeTreatmentItem> activeTreatments;
         private final List<NarrativeTreatmentItem> recentTreatments;
-        private NarrativeTreatmentAuthor author1;
-        private NarrativeTreatmentAuthor author2;
+        private NarrativeTreatmentAuthor lastInterveningAuthor;
+        private NarrativeTreatmentAuthor lastMedicalAuthor;
         private String patientName;
         private String patientGender;
         private String patientBirthDate;
@@ -255,12 +252,12 @@ public class NarrativeTreatmentDocument {
         }
 
         public NarrativeTreatmentDocumentBuilder author1(AuthorDigest author) {
-            this.author1 = new NarrativeTreatmentAuthor(author);
+            this.lastInterveningAuthor = new NarrativeTreatmentAuthor(author);
             return this;
         }
 
         public NarrativeTreatmentDocumentBuilder author2(AuthorDigest author) {
-            this.author2 = new NarrativeTreatmentAuthor(author);
+            this.lastMedicalAuthor = new NarrativeTreatmentAuthor(author);
             return this;
         }
 

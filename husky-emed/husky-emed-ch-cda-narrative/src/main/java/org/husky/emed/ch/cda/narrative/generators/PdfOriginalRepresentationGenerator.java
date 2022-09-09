@@ -359,7 +359,7 @@ public class PdfOriginalRepresentationGenerator extends AbstractNarrativeGenerat
         tr.appendChild(narDom.td(this.formatPatientPersonalData(narDom, document), null));
         var tdAuthor = narDom.td(null, null);
         tdAuthor.appendChild(narDom.title3(StringUtils.capitalize(this.getMessage("AUTHOR_DOCUMENT", document.getNarrativeLanguage())), null));
-        tdAuthor.appendChild(this.formatAuthorName(narDom, document.getAuthor1()));
+        tdAuthor.appendChild(this.formatAuthorName(narDom, document.getLastMedicalAuthor()));
 
         tr.appendChild(tdAuthor);
 
